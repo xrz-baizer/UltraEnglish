@@ -1,30 +1,49 @@
-# UltraEnglish 桌面客户端
+<img src="home/brand-logo.webp" alt="UltraEnglish" width="220">
 
-UltraEnglish 把音频精听、跟读和拼写练习放在同一个桌面应用里。客户端使用 Electron、React、TypeScript 和 SQLite，核心学习功能可在本机独立运行。
+# UltraEnglish 英语学习桌面客户端
 
-## 本地启动
+听到一句英语，总有几个词跟不上？在 UltraEnglish 里，你可以点字幕跳到原声，选中这几个词反复听，再回到整句跟读。想练拼写时，打开一本词书，从上次停下的章节继续。
 
-准备 Node.js 22.x 和 npm。从仓库根目录执行以下命令，后续命令均在客户端目录运行。
+**[访问官网](https://xrz-baizer.github.io/UltraEnglish/)** · [体验跟读与拼写](https://xrz-baizer.github.io/UltraEnglish/#experience) · [下载 Mac 客户端](https://xrz-baizer.github.io/UltraEnglish/#download)
 
-```bash
-cd ultra-english-client
-npm ci
-npm run dev
-```
+## 客户端里可以怎么练？
 
-首次启动会创建本地数据库并导入内置词库。如果启动时提示 `sqlite3` 的 `NODE_MODULE_VERSION` 不匹配，关闭客户端，运行 `npm run rebuild` 后重新启动。
+| 学习方式 | 试一试 |
+| --- | --- |
+| 音频跟读 | 打开内置的《日常高频句子-1》，点击一句字幕听原声。如果句子太快，可以放慢语速，或只循环其中一小段。 |
+| 歌曲跟唱 | 导入本地歌曲，配上歌词字幕。点击想练的那一行，听清连读和停顿，再跟着唱。 |
+| 单词与句子拼写 | 在词汇资料库选一本词书，进入章节后用键盘拼写。也可以导入自己的 JSON 词表，练习课文里的词句。 |
 
-## 开始学习
+[查看官网里的主页、词汇和音频界面预览 →](https://xrz-baizer.github.io/UltraEnglish/#themes)
 
-- **音频精听与跟读**：导入本地音频和字幕，点击字幕跳到对应位置。可以逐句循环、调整语速，也可以只选中难听清的几个词反复练习。
-- **生成字幕**：使用本地 Whisper 模型识别英文音频。仓库包含 tiny 模型和两种 Mac 架构的识别引擎。转录和纯文本字幕对齐需要 FFmpeg；使用 Homebrew 的 Mac 可运行 `brew install ffmpeg`。
-- **拼写练习**：在词汇资料库选择词书和章节，练习单词或整句，也可以导入自己的 JSON 词库。每项用 `name` 填写英文原文，用 `trans` 保存中文释义数组。
+## 第一次使用
+
+1. 从官网下载适合 Apple 芯片 Mac 的安装包，打开 DMG，将 UltraEnglish 拖入「应用程序」。
+2. 启动后选「跟读练习」，打开内置音频，点一句字幕开始听。第一次体验可以直接使用示例素材。
+3. 想换一种练法，就回到首页选「拼写练习」，挑一本词书开始第一章。练习进度保存在本机。
+
+### 使用自己的学习素材
+
+使用本地 Whisper 模型识别英文音频。仓库包含 tiny 模型和两种 Mac 架构的识别引擎。转录和纯文本字幕对齐需要 FFmpeg；使用 Homebrew 的 Mac 可运行 `brew install ffmpeg`。
+
+自定义词库使用 JSON 数组。每项用 `name` 填写英文原文，用 `trans` 保存中文释义数组。
 
 ```json
 [
   { "name": "curiosity", "trans": ["n. 好奇心；求知欲"] }
 ]
 ```
+
+## 本地启动
+
+准备 Node.js 22.x 和 npm。在包含客户端 `package.json` 的目录中执行以下命令。
+
+```bash
+npm ci
+npm run dev
+```
+
+首次启动会创建本地数据库并导入内置词库。如果启动时提示 `sqlite3` 的 `NODE_MODULE_VERSION` 不匹配，关闭客户端，运行 `npm run rebuild` 后重新启动。
 
 ## 制作安装包
 

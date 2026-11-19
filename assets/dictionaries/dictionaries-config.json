@@ -1,0 +1,60 @@
+{
+  "dictionaries": [
+    {
+      "id": "ielts-wang-5",
+      "name": "雅思王 C5",
+      "nameZh": "雅思王 C5",
+      "description": "IELTS Wang Listening Corpus Chapter 5",
+      "descriptionZh": "雅思王听力真题语料库第5章",
+      "category": "雅思",
+      "url": "IELTS_WANG_5.json",
+      "length": 1569,
+      "chapterLength": 100,
+      "language": "en",
+      "bookType": "word"
+    },
+    {
+      "id": "ielts-wang-11",
+      "name": "雅思王 C11",
+      "nameZh": "雅思王 C11",
+      "description": "IELTS Wang Listening Corpus Chapter 11",
+      "descriptionZh": "雅思王听力真题语料库第11章",
+      "category": "雅思",
+      "url": "IELTS_WANG_11.json",
+      "length": 1735,
+      "chapterLength": 100,
+      "language": "en",
+      "bookType": "word"
+    },
+    {
+      "id": "basic-vocabulary",
+      "name": "基础词汇",
+      "category": "其他",
+      "url": "BasicVocabulary-lite.json",
+      "length": 2947,
+      "chapterLength": 100,
+      "language": "en",
+      "bookType": "word"
+    },
+    {
+      "id": "coca-3000-6000",
+      "name": "COCA 3000-6000",
+      "category": "其他",
+      "url": "COCA3000-6000.json",
+      "length": 2418,
+      "chapterLength": 100,
+      "language": "en",
+      "bookType": "word"
+    },
+    {
+      "id": "reading-core",
+      "name": "阅读核心词汇",
+      "category": "其他",
+      "url": "ReadingCore.json",
+      "length": 4491,
+      "chapterLength": 100,
+      "language": "en",
+      "bookType": "word"
+    }
+  ]
+}

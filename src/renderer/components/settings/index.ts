@@ -1,0 +1,6 @@
+export { SettingsModal } from './settings-modal'
+export { BasicSettings } from './basic-settings'
+export { VocabularySettings } from './vocabulary-settings'
+export { AudioSettings } from './audio-settings'
+export { HotkeysSettings } from './hotkeys-settings'
+export { UserSettings } from './user-settings'

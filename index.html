@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UltraEnglish 支持影子跟读、英语歌曲分段跟唱、自定义词库和句子拼写训练。导入音频，粘贴或生成字幕，选中片段反复练习。">
+  <link rel="icon" type="image/png" sizes="16x16" href="home/icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="home/icon-32.png">
+  <link rel="apple-touch-icon" sizes="128x128" href="home/icon-128.png">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>UltraEnglish — 英语跟读，长句跟不上？选中其中一小段，反复跟读。</title>
+  <link rel="license" href="home/font-license.txt" title="UltraEnglish Display font license">
+  <link rel="stylesheet" href="home/home.css">
+</head>
+<body>
+  <a class="skip" href="#main" data-en="Skip to content">跳到主要内容</a>
+  <header class="wrap topbar glass">
+    <nav class="nav" aria-label="主导航" data-en-label="Main navigation">
+      <a class="brand" href="#main" aria-label="UltraEnglish 首页" data-en-label="UltraEnglish home">
+        <img class="brand-logo" src="home/brand-logo.webp" width="618" height="206" alt="UltraEnglish" decoding="async">
+      </a>
+      <div class="nav-actions">
+        <a class="nav-link" href="#experience" data-en="Explore">功能体验</a>
+        <button class="language" id="language" type="button" aria-label="Switch to English">EN</button>
+        <a class="button compact" href="#download" data-en="Mac download">Mac 版下载</a>
+      </div>
+    </nav>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title"><span class="hero-question"><span class="hero-context"><svg aria-hidden="true" width="16" height="18" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9v6M7 5v14M11 2v20M15 6v12M19 10v4"/></svg><span data-en="English">英语跟读</span></span><span class="hero-pain" data-en="Can't keep up?">长句跟不上？</span></span></h1>
+      <p class="lede" data-en="An English learning app for shadowing, songs and spelling practice.">一款英语学习工具，支持影子跟读、英语歌曲学习与拼写训练。</p>
+      <div class="hero-actions"><a class="button" href="#download"><span data-en="Download for Apple Silicon">下载 Apple Silicon 版</span><span aria-hidden="true">↓</span></a><a id="repository-link" class="text-link">GitHub <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section id="experience" aria-label="功能体验" data-en-label="Features">
+    <div class="learning-preview" aria-label="学习工作区" data-en-label="Learning workspace">
+      <div class="sculpture" aria-hidden="true"><div class="light"></div><div class="light second"></div><div class="orbit"></div></div>
+      <div class="stage">
+        <div class="app-window">
+          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="window-title" id="window-title">选中其中一小段，反复跟读。</span></div>
+          <div id="panel-audio" class="app-panel" role="tabpanel" aria-labelledby="tab-audio" tabindex="0">
+            <div class="sidebar">
+              
+              <button type="button" class="sentence-choice" data-sentence="0" aria-pressed="true"><small>01</small><span lang="en">Struggling to keep up with long English sentences, even after listening again?</span></button>
+              <button type="button" class="sentence-choice" data-sentence="1" aria-pressed="false"><small>02</small><span lang="en">Pick a short phrase, and practise it on repeat.</span></button>
+              <button type="button" class="sentence-choice" data-sentence="2" aria-pressed="false"><small>03</small><span lang="en">Shadow, sing and spell, in one English learning app.</span></button>
+            </div>
+            <div class="workspace">
+              <p class="sample-sentence" id="sample-sentence" lang="en" aria-label="选择想跟读的片段" data-en-label="Select a phrase to practise">Struggling to keep up with long English sentences, even after listening again?</p>
+              <div class="wave" aria-hidden="true"></div>
+              <div class="wave-caption"><span>00:04</span><span>00:08</span></div>
+            </div>
+          </div>
+          <div id="panel-typing" class="app-panel" role="tabpanel" aria-labelledby="tab-typing" tabindex="0" hidden>
+            <div class="sidebar" aria-hidden="true"><p class="word-list current" lang="en">curiosity</p><p class="word-list" lang="en">practice</p><p class="word-list" lang="en">progress</p></div>
+            <div class="workspace">
+              <p class="typing-word" lang="en">curiosity</p>
+              <p class="typing-meaning" data-en="noun · a desire to learn">n. 好奇心；求知欲</p>
+              <label class="typing-label" for="typing-input" data-en="Try typing this word">试着输入这个单词</label>
+              <input class="typing-input" id="typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40" placeholder="curiosity" aria-describedby="typing-feedback">
+              <p class="typing-feedback" id="typing-feedback" aria-live="polite">从一个词，开始积累。</p>
+            </div>
+          </div>
+        </div>
+        <div class="mode-dock glass" role="tablist" aria-label="切换学习方式" data-en-label="Choose a learning mode">
+          <button id="tab-audio" type="button" role="tab" aria-selected="true" aria-controls="panel-audio" tabindex="0"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 13H2v7h4v-7zm16 0h2v7h-4v-7z"/></svg><span data-en="Audio study">音频精听</span></button>
+          <button id="tab-typing" type="button" role="tab" aria-selected="false" aria-controls="panel-typing" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1M7 15h10"/></svg><span data-en="Vocabulary">词汇练习</span></button>
+        </div>
+      </div>
+    </div>
+
+    <section class="study-story" aria-label="核心功能" data-en-label="Core features">
+      <div class="story-intro">
+        <h2 data-en="What can you learn from a song?">一首英文歌，可以怎么练？</h2>
+        <div class="story-progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="story-steps">
+        <article class="feature">
+          <h2 data-en="Catch a phrase">听清一句</h2>
+          <p data-en="Loop a short phrase and shadow the singer’s rhythm.">选中一小段反复听，再跟着原声读出它的节奏。</p>
+          <div class="story-art phrase-art" aria-hidden="true" lang="en">
+            <strong>Row, row, <mark>row your boat</mark></strong>
+            <div class="phrase-wave"></div>
+            <div class="phrase-times"><span>00:02</span><span>00:05</span></div>
+          </div>
+        </article>
+        <article class="feature">
+          <h2 data-en="Sing the next line">接着唱下一句</h2>
+          <p data-en="Add lyrics and practise one line at a time.">给歌曲配上字幕，把刚才听清的那句连起来唱。</p>
+          <div class="story-art song-art" aria-hidden="true" lang="en">
+            <span class="record"></span><div><small>Row, row, row your boat</small><strong>Gently down<br>the stream.</strong></div>
+          </div>
+        </article>
+        <article class="feature">
+          <h2 data-en="Keep a word from the song">把生词放进词库</h2>
+          <p data-en="Import your own vocabulary list and revisit words by chapter.">把歌词里的生词整理成词表，导入后就能按章节复习。</p>
+          <div class="story-art vocab-art" aria-hidden="true">
+            <div class="word-slip"><small lang="en">/striːm/</small><strong lang="en">stream</strong><span data-en="noun · a small river">名词 · 小溪</span></div>
+          </div>
+        </article>
+        <article class="feature">
+          <h2 data-en="Spell it from memory">合上歌词，自己拼</h2>
+          <p data-en="Spell the word, then try a whole sentence. Your progress is saved.">先拼出单词，再挑战整句。下次打开，接着上次的进度练。</p>
+          <div class="story-art spell-art" aria-hidden="true" lang="en">
+            <div class="spell-keys"><kbd>s</kbd><kbd>t</kbd><kbd>r</kbd><kbd>e</kbd><kbd>a</kbd><kbd>m</kbd></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="showcase" id="themes" aria-labelledby="themes-title">
+      <div class="showcase-heading">
+        <h2 id="themes-title" data-en="A different look. The same focus.">换个主题，继续专注。</h2>
+        <p data-en="Light, dark or soft green. Your system theme works too.">浅色、深色、护眼，也能跟随系统。</p>
+      </div>
+      <div class="theme-fan" role="group" aria-label="三种主题界面" data-en-label="Three interface themes">
+        <article class="app-window theme-window theme-card" data-preview-theme="dark" tabindex="0" aria-labelledby="theme-card-dark-title">
+          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><h3 class="window-title" id="theme-card-dark-title" data-en="Dark · Home">深色 · 主页</h3></div>
+          <div class="theme-workspace mini-overview">
+            <span class="preview-eyebrow" data-en="Learning overview">学习概览</span>
+            <h4 class="mini-greeting" data-en="A little, every day.">每天一点，慢慢进步。</h4>
+            <div class="mini-library-row"><span class="mini-library-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Zm0 0v14"/></svg></span><div><strong data-en="My vocabulary">我的单词本</strong><span data-en="Pick up where you left off">接着上次的进度练</span></div></div>
+            <div class="mini-library-row"><span class="mini-library-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 13H2v7h4v-7zm16 0h2v7h-4v-7z"/></svg></span><div><strong data-en="My audio">我的音频</strong><span data-en="Listen. Repeat. Make progress.">听一听，再跟着读</span></div></div>
+          </div>
+        </article>
+        <article class="app-window theme-window theme-card" data-preview-theme="light" tabindex="0" aria-labelledby="theme-card-light-title">
+          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><h3 class="window-title" id="theme-card-light-title" data-en="Light · Words">浅色 · 单词</h3></div>
+          <div class="theme-workspace">
+            <span class="preview-eyebrow" data-en="Spelling practice">单词拼写</span>
+            <div class="spelling-letters" aria-label="curiosity" lang="en"><span class="done">c</span><span class="done">u</span><span class="done">r</span><span class="current">i</span><span>o</span><span>s</span><span>i</span><span>t</span><span>y</span></div>
+            <p class="preview-meaning" data-en="noun · a desire to learn">n. 好奇心；求知欲</p>
+            <div class="practice-meter" aria-hidden="true"><span></span></div>
+          </div>
+        </article>
+        <article class="app-window theme-window theme-card" data-preview-theme="eye-protection" tabindex="0" aria-labelledby="theme-card-eye-protection-title">
+          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><h3 class="window-title" id="theme-card-eye-protection-title" data-en="Green · Audio">护眼 · 音频</h3></div>
+          <div class="theme-workspace mini-audio">
+            <span class="preview-eyebrow" data-en="Phrase-by-phrase shadowing">片段跟读</span>
+            <p class="mini-audio-sentence" lang="en"><span>Listen closely,</span><mark>then try again.</mark></p>
+            <div class="mini-audio-wave" aria-hidden="true"><i class="wave-10"></i><i class="wave-19"></i><i class="wave-28"></i><i class="wave-14"></i><i class="wave-22"></i><i class="wave-32"></i><i class="wave-17"></i><i class="wave-26" class="is-selected"></i><i class="wave-34" class="is-selected"></i><i class="wave-23" class="is-selected"></i><i class="wave-15" class="is-selected"></i><i class="wave-29" class="is-selected"></i><i class="wave-36" class="is-selected"></i><i class="wave-24" class="is-selected"></i><i class="wave-18" class="is-selected"></i><i class="wave-31" class="is-selected"></i><i class="wave-25" class="is-selected"></i><i class="wave-14"></i><i class="wave-23"></i><i class="wave-30"></i><i class="wave-19"></i><i class="wave-12"></i><i class="wave-25"></i><i class="wave-17"></i><i class="wave-10"></i></div>
+            <div class="mini-audio-time" aria-hidden="true"><span>00:04</span><span>00:08</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="fan-legend" aria-hidden="true"><span><i class="legend-dark"></i><span data-en="Overview">学习概览</span></span><span><i class="legend-light"></i><span data-en="Spelling">单词拼写</span></span><span><i class="legend-green"></i><span data-en="Audio">音频播放</span></span></div>
+    </section>
+
+    <section class="showcase" id="personalize" aria-labelledby="personalize-title">
+      <div class="showcase-heading">
+        <h2 id="personalize-title" data-en="Make practice feel like you.">从字体到按键，都按你的习惯。</h2>
+        <p data-en="Choose your text style, practice rhythm and keyboard shortcuts.">调整文字样式、练习节奏与快捷键，找到顺手的学习方式。</p>
+      </div>
+      <div class="app-window settings-window">
+        <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="window-title" data-en="Your way to practise.">练习方式，由你定义。</span></div>
+        <div class="personal-layout">
+          <div class="settings-nav" id="personal-tabs" role="tablist" aria-orientation="vertical" aria-label="个性设置" data-en-label="Personal preferences">
+            <button class="settings-tab" type="button" role="tab" id="personal-tab-type" aria-selected="true" aria-controls="personal-panel-type" tabindex="0"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 11 4h2l7 16M7 14h10"/></svg><span data-en="Typography">文字样式</span></button>
+            <button class="settings-tab" type="button" role="tab" id="personal-tab-practice" aria-selected="false" aria-controls="personal-panel-practice" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5H5v14h14v-3M9 14l9-9 3 3-9 9H9z"/></svg><span data-en="Practice">练习偏好</span></button>
+            <button class="settings-tab" type="button" role="tab" id="personal-tab-keys" aria-selected="false" aria-controls="personal-panel-keys" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1M7 15h10"/></svg><span data-en="Shortcuts">快捷键</span></button>
+          </div>
+          <div class="personal-content">
+            <div class="control-panel" id="personal-panel-type" role="tabpanel" aria-labelledby="personal-tab-type" tabindex="0">
+              <h3 data-en="Find your reading style.">看得舒服，记得更牢。</h3>
+              <div class="setting-row"><label for="preview-font" data-en="Font">字体</label><select id="preview-font"><option value="system-ui" data-en="System">系统默认</option><option value="Georgia, serif">Georgia</option><option value="Arial, sans-serif">Arial</option></select></div>
+              <div class="setting-row setting-slider"><label for="preview-size" data-en="Size">字号</label><input id="preview-size" type="range" min="24" max="44" value="36" step="1"><output id="preview-size-value" for="preview-size">36</output></div>
+              <div class="setting-row"><label for="preview-bold" data-en="Bold text">加粗显示</label><span class="switch"><input id="preview-bold" type="checkbox"><span class="switch-track"></span></span></div>
+              <div class="setting-row"><span id="preview-color-label" data-en="Text color">文字颜色</span><div class="color-options" role="group" aria-labelledby="preview-color-label"><button type="button" class="color-choice" data-preview-color="#0066cc" aria-pressed="true" aria-label="蓝色" data-en-label="Blue"></button><button type="button" class="color-choice" data-preview-color="#287256" aria-pressed="false" aria-label="绿色" data-en-label="Green"></button><button type="button" class="color-choice" data-preview-color="#1d1d1f" aria-pressed="false" aria-label="黑色" data-en-label="Black"></button></div></div>
+            </div>
+            <div class="control-panel" id="personal-panel-practice" role="tabpanel" aria-labelledby="personal-tab-practice" tabindex="0" hidden>
+              <h3 data-en="Practise at your own pace.">按自己的节奏来。</h3>
+              <div class="setting-row"><span id="preview-mode-label" data-en="Mode">练习方式</span><div class="choice-group" role="group" aria-labelledby="preview-mode-label"><button type="button" class="choice-button" data-preview-mode="fill" aria-pressed="true" data-en="Fill in">填空</button><button type="button" class="choice-button" data-preview-mode="dictation" aria-pressed="false" data-en="Dictation">默写</button></div></div>
+              <div class="setting-row"><span id="preview-repeats-label" data-en="Repeats">重复次数</span><div class="choice-group" role="group" aria-labelledby="preview-repeats-label"><button type="button" class="choice-button" data-preview-repeats="1" aria-pressed="false">1</button><button type="button" class="choice-button" data-preview-repeats="3" aria-pressed="true">3</button><button type="button" class="choice-button" data-preview-repeats="5" aria-pressed="false">5</button></div></div>
+              <div class="setting-row"><label for="preview-random" data-en="Shuffle words">随机顺序</label><span class="switch"><input id="preview-random" type="checkbox"><span class="switch-track"></span></span></div>
+            </div>
+            <div class="control-panel" id="personal-panel-keys" role="tabpanel" aria-labelledby="personal-tab-keys" tabindex="0" hidden>
+              <h3 data-en="Keep your hands on the keys.">常用操作，抬手就到。</h3>
+              <div class="shortcut-row"><span data-en="Previous word">上一个单词</span><kbd>⌘ [</kbd></div>
+              <div class="shortcut-row"><span data-en="Next word">下一个单词</span><kbd>⌘ ]</kbd></div>
+              <div class="shortcut-row"><span data-en="Show definition">显示释义</span><kbd>Tab</kbd></div>
+              <div class="shortcut-row"><span data-en="Mark as known">标记熟词</span><kbd>⌘ K</kbd></div>
+            </div>
+            <div class="live-sample" aria-label="文字样式预览" data-en-label="Text style preview">
+              <span class="preview-eyebrow" id="live-mode" data-en="Fill-in practice">填空练习</span>
+              <div class="live-word" id="live-word" lang="en">curiosity</div>
+              <p id="live-meaning" data-en="noun · a desire to learn">n. 好奇心；求知欲</p>
+              <div class="repeat-dots" id="repeat-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    </section>
+
+    <section class="release" id="download" aria-labelledby="download-title">
+      <img class="download-app-icon" src="home/icon-128.png" width="128" height="128" alt="" loading="lazy" decoding="async">
+      <h2 id="download-title" data-en="Download UltraEnglish for Mac">下载 Mac 版 UltraEnglish</h2>
+      <p class="system-requirement" data-en="For Macs with Apple silicon running macOS 14 or later.">适用于搭载 Apple 芯片、运行 macOS 14 或更高版本的 Mac。</p>
+      <a class="button" href="./downloads/UltraEnglish-arm64.dmg" download="UltraEnglish-arm64.dmg" data-en="Download for Apple Silicon">下载 Apple Silicon 版</a>
+      <a id="release-link" class="text-link releases-link"><span data-en="All versions on GitHub Releases">在 GitHub Releases 查看所有版本</span><span aria-hidden="true">↗</span></a>
+    </section>
+    <footer class="footer"><p>© 2026 UltraEnglish</p><div class="footer-links"><a id="support-link" hidden data-en="Support">联系支持</a><a id="privacy-link" hidden data-en="Privacy policy">隐私政策</a><a href="#main" data-en="Back to top ↑">返回顶部 ↑</a></div></footer>
+  </main>
+  <script src="home/home.js"></script>
+</body>
+</html>

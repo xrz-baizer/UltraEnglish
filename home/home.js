@@ -1,9 +1,8 @@
 'use strict';
-// 以下为部署占位地址，请替换成真实仓库和 Releases 链接。
 // Optional support/privacy links stay hidden until configured.
 const SITE_CONFIG = Object.freeze({
-  repositoryUrl: 'https://github.com/YOUR_USERNAME/UltraEnglish',
-  releaseUrl: 'https://github.com/YOUR_USERNAME/UltraEnglish/releases/latest',
+  repositoryUrl: 'https://github.com/xrz-baizer/UltraEnglish',
+  releaseUrl: 'https://github.com/xrz-baizer/UltraEnglish/releases',
   supportUrl: '',
   privacyUrl: ''
 });

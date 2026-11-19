@@ -1,4 +1,20 @@
+const { readdir, rm } = require('node:fs/promises')
+const { join } = require('node:path')
+
 module.exports = {
+  hooks: {
+    packageAfterPrune: async (_config, buildPath, _electronVersion, platform) => {
+      const target = platform === 'mas' ? 'darwin' : platform
+      const binaries = join(buildPath, 'node_modules/onnxruntime-node/bin/napi-v6')
+      const platforms = ['darwin', 'linux', 'win32']
+      if (!platforms.includes(target)) return
+      for (const entry of await readdir(binaries)) {
+        if (platforms.includes(entry) && entry !== target) {
+          await rm(join(binaries, entry), { recursive: true })
+        }
+      }
+    }
+  },
   packagerConfig: {
     name: 'UltraEnglish',
     executableName: 'ultra-english',

@@ -6,15 +6,19 @@
 
 **[访问官网](https://xrz-baizer.github.io/UltraEnglish/)** · [体验跟读与拼写](https://xrz-baizer.github.io/UltraEnglish/#experience) · [下载 Mac 客户端](https://xrz-baizer.github.io/UltraEnglish/#download)
 
-## 客户端里可以怎么练？
+![客户端首页，展示拼写练习、跟读练习入口和本地学习进度](docs/screenshots/desktop-home.png)
 
-| 学习方式 | 试一试 |
-| --- | --- |
-| 音频跟读 | 打开内置的《日常高频句子-1》，点击一句字幕听原声。如果句子太快，可以放慢语速，或只循环其中一小段。 |
-| 歌曲跟唱 | 导入本地歌曲，配上歌词字幕。点击想练的那一行，听清连读和停顿，再跟着唱。 |
-| 单词与句子拼写 | 在词汇资料库选一本词书，进入章节后用键盘拼写。也可以导入自己的 JSON 词表，练习课文里的词句。 |
+## 音频跟读与歌曲跟唱
 
-[查看官网里的主页、词汇和音频界面预览 →](https://xrz-baizer.github.io/UltraEnglish/#themes)
+打开内置的《日常高频句子-1》，点击右侧字幕就能跳到对应的原声。长句跟不上时，可以放慢语速，或只循环其中几个词。换成自己的歌曲和歌词字幕，就能按同样的方式逐句跟唱。
+
+![跟读界面，左侧展示当前句子，右侧是带时间戳的字幕，下方是音频波形和播放控件](docs/screenshots/audio-study.png)
+
+## 词库与拼写练习
+
+从词汇资料库挑一本词书，进入章节后用键盘练习拼写。想练自己的材料，也可以把单词或整句整理成 JSON 词表导入。
+
+![词汇资料库，展示按分类整理的雅思词汇、阅读核心词汇和基础词汇书](docs/screenshots/vocabulary-library.png)
 
 ## 第一次使用
 

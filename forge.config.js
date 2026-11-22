@@ -19,7 +19,8 @@ module.exports = {
     name: 'UltraEnglish',
     executableName: 'ultra-english',
     icon: './assets/icons/icon',
-    asar: true,
+    // The native binding loads its sibling ONNX Runtime libraries from disk.
+    asar: { unpackDir: join('node_modules', 'onnxruntime-node', 'bin') },
     extraResource: [
       './assets/audios',
       './assets/dictionaries',

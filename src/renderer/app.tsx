@@ -17,6 +17,7 @@ import { VocabularyPracticePage } from './pages/vocabulary/practice'
 import { ImportVocabularyWindow } from './pages/vocabulary/import-window'
 import { AudiosPage } from './pages/audios'
 import { AudioDetailPage } from './pages/audios/detail'
+import { AudioGenerationPage } from './pages/audio-generation'
 import { LoginPage } from './pages/auth/login'
 import { RegisterPage } from './pages/auth/register'
 
@@ -71,6 +72,7 @@ export function App() {
             <Route path="vocabulary/:bookId/practice" element={<VocabularyPracticePage />} />
             <Route path="audios" element={<AudiosPage />} />
             <Route path="audios/:id" element={<AudioDetailPage />} />
+            <Route path="audio-generation" element={<AudioGenerationPage />} />
           </Route>
         </Routes>
       </HashRouter>

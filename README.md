@@ -2,33 +2,44 @@
 
 # UltraEnglish 英语学习桌面客户端
 
-听到一句英语，总有几个词跟不上？在 UltraEnglish 里，你可以点字幕跳到原声，选中这几个词反复听，再回到整句跟读。想练拼写时，打开一本词书，从上次停下的章节继续。
+UltraEnglish 把英文文本和音频变成可以反复练习的学习素材。可以用自己的材料练听力和跟读，也可以打开词书按章节练习拼写。
 
-**[访问官网](https://xrz-baizer.github.io/UltraEnglish/)** · [体验跟读与拼写](https://xrz-baizer.github.io/UltraEnglish/#experience) · [下载 Mac 客户端](https://xrz-baizer.github.io/UltraEnglish/#download)
+**[访问官网](https://xrz-baizer.github.io/UltraEnglish/)** · [在线体验](https://xrz-baizer.github.io/UltraEnglish/#experience) · [下载 Mac 客户端](https://xrz-baizer.github.io/UltraEnglish/#download) · [问题反馈](https://github.com/xrz-baizer/UltraEnglish/issues)
 
-![客户端首页，展示拼写练习、跟读练习入口和本地学习进度](docs/screenshots/desktop-home.png)
+## 核心功能
 
-## 音频跟读与歌曲跟唱
+### 文本生成音频
 
-打开内置的《日常高频句子-1》，点击右侧字幕就能跳到对应的原声。长句跟不上时，可以放慢语速，或只循环其中几个词。换成自己的歌曲和歌词字幕，就能按同样的方式逐句跟唱。
+在「生成音频」页输入或粘贴英文文本，选择音色、语速和输出格式，即可生成 MP3 或 WAV。首次使用时按提示下载 Kokoro 模型和音色，之后在本机合成。默认保存到系统下载目录，可在设置中调整模型存放位置和默认保存位置。生成后可以试听，也可以把音频和按原文生成的字幕一起导入音频资料库。
 
-![跟读界面，左侧展示当前句子，右侧是带时间戳的字幕，下方是音频波形和播放控件](docs/screenshots/audio-study.png)
+### 音频转文字
 
-## 词库与拼写练习
+在首页选择「音频转文字」，导入自己的英文音频后点击「生成字幕」。UltraEnglish 使用本地 Whisper 识别英文语音并生成带时间戳的字幕。点击字幕可跳到对应的原声。
 
-从词汇资料库挑一本词书，进入章节后用键盘练习拼写。想练自己的材料，也可以把单词或整句整理成 JSON 词表导入。
+### 选段跟读
+
+在「跟读训练」中打开一条素材。可以逐句跟读，也可以选中单词、短语或音轨中的一段，调整播放速度并循环跟读。导入自己的歌曲和歌词，也可以逐句跟唱。
+
+![跟读界面，展示当前句、字幕列表和音频波形](docs/screenshots/audio-study.png)
+
+### 单词拼写练习
+
+在「拼写练习」中打开内置词书，按章节用键盘练习英文单词拼写。也可以导入自己的 JSON 词表。练习进度保存在本机，下次可以接着练。
 
 ![词汇资料库，展示按分类整理的雅思词汇、阅读核心词汇和基础词汇书](docs/screenshots/vocabulary-library.png)
 
 ## 第一次使用
 
 1. 从官网下载适合 Apple 芯片 Mac 的安装包，打开 DMG，将 UltraEnglish 拖入「应用程序」。
-2. 启动后选「跟读练习」，打开内置音频，点一句字幕开始听。第一次体验可以直接使用示例素材。
-3. 想换一种练法，就回到首页选「拼写练习」，挑一本词书开始第一章。练习进度保存在本机。
+
+   > 当前官网下载的 macOS 安装包未签名，首次打开时可能提示「应用已损坏」。安装后，在「终端」运行 `xattr -cr /Applications/UltraEnglish.app`，然后重新打开 UltraEnglish。
+
+2. 在首页选「跟读训练」，打开内置的《日常高频句子-1》，点击一句字幕开始听，或选中几个词反复跟读。
+3. 想使用自己的材料，可以在「生成音频」里粘贴英文文本，也可以从「音频转文字」导入现成的英文音频。想练单词时，从「拼写练习」选一本词书开始。
 
 ### 使用自己的学习素材
 
-使用本地 Whisper 模型识别英文音频。仓库包含 tiny 模型和两种 Mac 架构的识别引擎。转录和纯文本字幕对齐需要 FFmpeg；使用 Homebrew 的 Mac 可运行 `brew install ffmpeg`。
+转录和纯文本字幕对齐使用 FFmpeg。用 Homebrew 的 Mac 可运行 `brew install ffmpeg`。仓库包含 Whisper tiny 模型及两种 Mac 架构的识别引擎。「生成音频」导出 MP3 也需要支持 `libmp3lame` 的 FFmpeg，编码失败时可把本次结果改存 WAV。
 
 自定义词库使用 JSON 数组。每项用 `name` 填写英文原文，用 `trans` 保存中文释义数组。
 
@@ -37,6 +48,10 @@
   { "name": "curiosity", "trans": ["n. 好奇心；求知欲"] }
 ]
 ```
+
+## 问题反馈
+
+遇到问题或有功能建议，可以在 GitHub [查看已有 Issue](https://github.com/xrz-baizer/UltraEnglish/issues) 或 [提交新 Issue](https://github.com/xrz-baizer/UltraEnglish/issues/new)。反馈问题时，欢迎附上客户端版本、系统版本和复现步骤。
 
 ## 本地启动
 
@@ -92,7 +107,7 @@ npm run make -- --platform=win32 --arch=x64
 
 词库、练习进度和字幕保存在 Electron 用户数据目录下的 `data/ultra-english.db`，部分偏好和笔记保存在 localStorage。备份时先退出应用，复制整个用户数据目录，并保留单独设置的音频和模型目录。
 
-语音转录在本机处理。在线发音会将朗读文本发送至有道，下载 Whisper 模型会访问 Hugging Face，首次使用文本对齐也可能下载所需资源。
+生成音频与语音转录在本机处理。下载 Kokoro 资源或 Whisper 模型需要联网，首次使用文本对齐也可能下载所需资源。在线发音会将朗读文本发送至有道。
 
 ## 开发与第三方资源
 

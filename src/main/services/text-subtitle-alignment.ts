@@ -1,16 +1,15 @@
 import { findExecutable } from './whisper'
 import type { TranscriptionSegment } from '../../shared/audio-transcription'
+import { groupSubtitleText } from '../../shared/subtitle-text'
 
-/** Align supplied English text locally, then group real word times by sentence. */
+/** Align supplied English text locally, keeping paragraphs together when separated by blank lines. */
 export async function alignTextSubtitles(
   file: string,
   content: string
 ): Promise<TranscriptionSegment[]> {
-  const text = content
-    .replace(/^\uFEFF/, '')
-    .replace(/\s+/g, ' ')
-    .trim()
+  const { text, groups } = groupSubtitleText(content)
   if (!text || text.length > 200000) throw new Error('Invalid transcript')
+
   const ffmpeg = findExecutable('ffmpeg')
   if (!ffmpeg) throw new Error('no_ffmpeg')
   const engine = await import('echogarden')
@@ -20,15 +19,13 @@ export async function alignTextSubtitles(
     language: 'en',
     crop: false
   })
-  const sentences = Array.from(
-    new Intl.Segmenter('en', { granularity: 'sentence' }).segment(text)
-  )
-  const segments = sentences.flatMap((sentence, index) => {
+  const segments = groups.flatMap((group, index) => {
+    const end = group.index + group.segment.length
     const words = result.wordTimeline.filter(
       (word) =>
         word.startOffsetUtf16 !== undefined &&
-        word.startOffsetUtf16 >= sentence.index &&
-        word.startOffsetUtf16 < sentence.index + sentence.segment.length &&
+        word.startOffsetUtf16 >= group.index &&
+        word.startOffsetUtf16 < end &&
         Number.isFinite(word.startTime) &&
         word.endTime > word.startTime
     )
@@ -36,11 +33,11 @@ export async function alignTextSubtitles(
     return [
       {
         id: `txt-${index}`,
-        text: sentence.segment.trim(),
+        text: group.segment.trim(),
         startTime: words[0].startTime,
         endTime: words[words.length - 1].endTime,
         words: words.map((word, wordIndex) => ({
-          text: text.slice(word.startOffsetUtf16!, words[wordIndex+1]?.startOffsetUtf16 ?? sentence.index+sentence.segment.length).trim(),
+          text: text.slice(word.startOffsetUtf16!, words[wordIndex + 1]?.startOffsetUtf16 ?? end).trim(),
           startTime: word.startTime,
           endTime: word.endTime
         }))
@@ -50,7 +47,7 @@ export async function alignTextSubtitles(
   if (
     !segments.length ||
     segments.length !==
-      sentences.filter((sentence) => sentence.segment.trim()).length
+      groups.filter((group) => group.segment.trim()).length
   )
     throw new Error('Text alignment failed')
   return segments

@@ -21,7 +21,7 @@ UltraEnglish 是本地优先的英语学习桌面应用，围绕词汇打字练�
 | 状态 | Zustand 5、React Context | 设置、认证状态、主题 |
 | 国际化 | i18next、react-i18next | 简体中文、英文 |
 | 本地持久化 | SQLite、Sequelize 6、sqlite3 | 词库、单词、进度、音频、设置 |
-| 音频 | WaveSurfer.js 7、HTMLAudioElement、whisper.cpp CLI、FFmpeg | 波形、播放、发音、转录 |
+| 音频 | WaveSurfer.js 7、HTMLAudioElement、whisper.cpp CLI、FFmpeg、Echogarden/Kokoro | 波形、播放、发音、转录、本机语音合成 |
 | 分发 | Electron Forge 7 | package/make/publish |
 
 `better-sqlite3`、`electron-store` 等出现在依赖中，但当前主要数据库实现是 `src/main/db/index.ts` 的 Sequelize + sqlite3。不要仅凭依赖列表描述未落地的架构，也不要在本次任务中替换存储引擎。
@@ -56,3 +56,5 @@ npm start
 macOS 使用系统窗口按钮和 vibrancy。Windows/Linux 使用正常原生标题栏与实色侧边栏，不模拟 macOS 红黄绿按钮。新增系统能力必须有平台判断和降级方案。
 
 本地转录资源及依赖见 [功能规范](05-features.md)；随包的 whisper.cpp 二进制及其 MIT 许可位于 `assets/bin/whisper/`。
+
+语音合成后台入口随主进程构建进入 `app-build/main/`。Forge 将 ONNX Runtime 原生绑定和同目录动态库一起放在 ASAR 外，合成模型和默认音色由客户端按需下载。

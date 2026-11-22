@@ -14,9 +14,11 @@ type Model = Awaited<
   ReturnType<typeof window.electronAPI.getDownloadedModels>
 >[number]
 export function TranscriptionModelDialog({
+  replacing,
   onClose,
   onConfirm
 }: {
+  replacing: boolean
   onClose: () => void
   onConfirm: (modelId: string) => void
 }) {
@@ -155,7 +157,7 @@ export function TranscriptionModelDialog({
             {t('audio.modelDownloadRequired')}
           </p>
         )}
-        <p className="text-sm">{t('audio.regenerateWarning')}</p>
+        {replacing && <p className="text-sm">{t('audio.regenerateWarning')}</p>}
         <div className="flex justify-end gap-2">
           <button className="secondary-button" onClick={onClose}>
             {t('common.cancel')}
@@ -165,7 +167,7 @@ export function TranscriptionModelDialog({
             disabled={loading || !model?.downloaded}
             onClick={() => onConfirm(selected)}
           >
-            {t('audio.regenerateSubtitles')}
+            {t(replacing ? 'audio.regenerateSubtitles' : 'audio.generateSubtitles')}
           </button>
         </div>
       </DialogContent>

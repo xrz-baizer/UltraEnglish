@@ -4,6 +4,7 @@ import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import log from 'electron-log'
 import { v4 as uuidv4 } from 'uuid'
+import type { GenerationOptions } from '../../shared/audio-generation'
 
 let sequelize: Sequelize | null = null
 
@@ -86,6 +87,19 @@ export interface TranscriptionAttributes {
   updatedAt?: Date
 }
 
+export interface AudioGenerationAttributes {
+  id: string
+  filePath: string
+  duration: number
+  size: number
+  options: GenerationOptions
+  content: string
+  segments: string
+  importedAudioId?: string | null
+  createdAt: Date
+  updatedAt?: Date
+}
+
 export interface UserSettingAttributes {
   id: string
   key: string
@@ -100,6 +114,7 @@ export type WordModel = Model<WordAttributes> & WordAttributes
 export type WordProgressModel = Model<WordProgressAttributes> & WordProgressAttributes
 export type PracticeRecordModel = Model<PracticeRecordAttributes> & PracticeRecordAttributes
 export type AudioModel = Model<AudioAttributes> & AudioAttributes
+export type AudioGenerationModel = Model<AudioGenerationAttributes> & AudioGenerationAttributes
 export type TranscriptionModel = Model<TranscriptionAttributes> & TranscriptionAttributes
 export type UserSettingModel = Model<UserSettingAttributes> & UserSettingAttributes
 
@@ -114,6 +129,7 @@ export const models: {
   PracticeRecord: ModelStatic<PracticeRecordModel>
   AudioCategory: ModelStatic<AudioCategoryModel>
   Audio: ModelStatic<AudioModel>
+  AudioGeneration: ModelStatic<AudioGenerationModel>
   Transcription: ModelStatic<TranscriptionModel>
   UserSetting: ModelStatic<UserSettingModel>
 } = {} as any
@@ -307,6 +323,21 @@ export async function initDatabase(): Promise<Sequelize> {
     size: DataTypes.INTEGER
   }, {
     tableName: 'audios'
+  })
+
+  models.AudioGeneration = sequelize.define<AudioGenerationModel>('AudioGeneration', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    filePath: { type: DataTypes.STRING, allowNull: false },
+    duration: { type: DataTypes.FLOAT, allowNull: false },
+    size: { type: DataTypes.INTEGER, allowNull: false },
+    options: { type: DataTypes.JSON, allowNull: false },
+    content: { type: DataTypes.TEXT, allowNull: false },
+    segments: { type: DataTypes.TEXT, allowNull: false },
+    importedAudioId: { type: DataTypes.STRING, allowNull: true },
+    createdAt: { type: DataTypes.DATE, allowNull: false }
+  }, {
+    tableName: 'audio_generations',
+    indexes: [{ fields: ['createdAt', 'id'] }]
   })
 
   // Define Transcription

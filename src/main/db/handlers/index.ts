@@ -2,15 +2,20 @@ import { alignTextSubtitles } from '../../services/text-subtitle-alignment'
 import { parseLrc } from '../../../shared/lrc-subtitles'
 import { generateSentenceIpa } from '../../services/phonetics'
 import type { TranscriptionSegment } from '../../../shared/audio-transcription'
-import { chooseStorageDirectory, getStoragePaths, getAudioStorageDirectory, getAudioPreferences } from '../../services/audio-storage'
+import { MAX_AUDIO_NAME_LENGTH } from '../../../shared/audio-library'
+import type { AudioResourceDetails, SelectedAudioFile } from '../../../shared/audio-library'
+import { chooseStorageDirectory, getStoragePaths, getAudioStorageDirectory, getAudioPreferences, withAudioLibraryCopy } from '../../services/audio-storage'
 import { ipcMain, dialog, BrowserWindow, shell, clipboard } from 'electron'
+import type { OpenDialogOptions, WebContents } from 'electron'
 import { models } from '../index'
 import { importVocabularyFromFile } from '../seed'
 import log from 'electron-log'
 import { join, basename, extname } from 'path'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { pathToFileURL } from 'node:url'
 import { app } from 'electron'
 import { Op } from 'sequelize'
+import type { Transaction } from 'sequelize'
 import type { LearningOverview } from '../../../shared/app-commands'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -24,6 +29,30 @@ import {
 } from '../../services/whisper'
 
 let importWindow: BrowserWindow | null = null
+const AUDIO_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a', 'flac']
+
+interface PendingAudioImport {
+  file: SelectedAudioFile
+  sourcePath: string
+  format: string
+  saving: boolean
+}
+
+function validateAudioName(value: string) {
+  if (typeof value !== 'string' || value.trim().length > MAX_AUDIO_NAME_LENGTH || value.includes('\0')) {
+    throw new Error('Invalid audio name')
+  }
+  return value.trim()
+}
+
+async function resolveAudioCategory(value: string, transaction: Transaction) {
+  if (typeof value !== 'string' || value.trim().length > 80) throw new Error('Invalid category')
+  const name = value.trim()
+  if (!name) return null
+  const record = await models.AudioCategory.findOne({ where: { name }, transaction })
+  if (!record) throw new Error('Category unavailable')
+  return record.name
+}
 
 const getPreloadPath = () => join(app.getAppPath(), 'app-build/preload/index.js')
 const getRendererPath = () => join(app.getAppPath(), 'app-build/renderer/index.html')
@@ -488,16 +517,18 @@ export function registerIpcHandlers(): void {
       offset
     })
 
-    // Check if each audio has transcription
-    const result = []
-    for (const audio of audios) {
-      const transcription = await models.Transcription.findOne({ where: { audioId: audio.id } })
-      result.push({
-        ...audio.toJSON(),
-        hasTranscription: !!transcription
-      })
-    }
-    return result
+    if (!audios.length) return []
+    const transcriptions = await models.Transcription.findAll({
+      attributes: ['audioId'],
+      where: limit !== undefined || offset !== undefined
+        ? { audioId: audios.map((audio) => audio.id) }
+        : undefined
+    })
+    const transcribedIds = new Set(transcriptions.map((transcription) => transcription.audioId))
+    return audios.map((audio) => ({
+      ...audio.toJSON(),
+      hasTranscription: transcribedIds.has(audio.id)
+    }))
   })
 
   const categoryName = (value: string) => {
@@ -525,21 +556,32 @@ export function registerIpcHandlers(): void {
   }))
 
   ipcMain.handle('audios-update-category', async (_, { ids, category }: { ids: string[]; category: string }) => {
-    if (!Array.isArray(ids) || !ids.length || ids.length > 1000 || ids.some(id => typeof id !== 'string') || typeof category !== 'string' || category.trim().length > 80) throw new Error('Invalid category update')
+    if (!Array.isArray(ids) || !ids.length || ids.length > 1000 || ids.some(id => typeof id !== 'string')) throw new Error('Invalid category update')
     const sequelize = models.Audio.sequelize
     if (!sequelize) throw new Error('Database unavailable')
     return sequelize.transaction(async transaction => {
-      if (category.trim() && !await models.AudioCategory.findOne({where:{name:category.trim()},transaction})) throw new Error('Category unavailable')
+      const nextCategory = await resolveAudioCategory(category, transaction)
       const records = await models.Audio.findAll({ where: { id: ids }, transaction })
       if (records.length !== new Set(ids).size) throw new Error('Audio unavailable')
-      await models.Audio.update({ category: category.trim() || null }, { where: { id: ids }, transaction })
+      await models.Audio.update({ category: nextCategory }, { where: { id: ids }, transaction })
       return records.length
+    })
+  })
+
+  ipcMain.handle('audios-update-details', async (_, { id, name, category }: AudioResourceDetails & { id: string }) => {
+    const nextName = validateAudioName(name)
+    if (!nextName || typeof id !== 'string' || !id) throw new Error('Invalid audio details')
+    await models.Audio.sequelize!.transaction(async (transaction) => {
+      const audio = await models.Audio.findByPk(id, { transaction })
+      if (!audio) throw new Error('Audio unavailable')
+      const nextCategory = await resolveAudioCategory(category, transaction)
+      await audio.update({ name: nextName, category: nextCategory }, { transaction })
     })
   })
 
   ipcMain.handle('audios-find-one', async (_, { id }: { id: string }) => {
     const audio = await models.Audio.findByPk(id)
-    return audio ? audio.get({ plain: true }) : null
+    return audio ? { ...audio.get({ plain: true }), fileUrl: pathToFileURL(audio.filePath).href } : null
   })
 
   ipcMain.handle('audio-storage-paths', () => getStoragePaths())
@@ -551,39 +593,57 @@ export function registerIpcHandlers(): void {
     return shell.openPath(folder)
   })
 
-  ipcMain.handle('audios-import', async () => {
-    const result = await dialog.showOpenDialog({
+  const pendingAudioImports = new WeakMap<WebContents, PendingAudioImport>()
+  ipcMain.handle('audios-select-file', async ({ sender }) => {
+    const options: OpenDialogOptions = {
       properties: ['openFile'],
-      filters: [
-        { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'flac'] }
-      ]
-    })
-
-    if (result.canceled || result.filePaths.length === 0) {
-      return null
+      filters: [{ name: 'Audio Files', extensions: AUDIO_EXTENSIONS }]
     }
+    const parent = BrowserWindow.fromWebContents(sender)
+    const result = await (parent
+      ? dialog.showOpenDialog(parent, options)
+      : dialog.showOpenDialog(options))
 
+    if (result.canceled || !result.filePaths.length || sender.isDestroyed()) return null
     const sourcePath = result.filePaths[0]
     const fileName = basename(sourcePath)
+    const extension = extname(fileName)
+    const format = extension.slice(1).toLowerCase()
+    if (!AUDIO_EXTENSIONS.includes(format)) throw new Error('Unsupported audio format')
 
-    // Copy to app data directory
-    const audioDir = await getAudioStorageDirectory()
-    if (!existsSync(audioDir)) {
-      mkdirSync(audioDir, { recursive: true })
+    const file = {
+      token: uuidv4(),
+      fileName,
+      defaultName: basename(fileName, extension).trim() || fileName
     }
+    pendingAudioImports.set(sender, { file, sourcePath, format, saving: false })
+    return file
+  })
 
-    const destPath = join(audioDir, `${Date.now()}-${fileName}`)
-    copyFileSync(sourcePath, destPath)
-
-    // Create audio record
-    const audio = await models.Audio.create({
-      id: uuidv4(),
-      name: fileName.replace(extname(fileName), ''),
-      filePath: destPath,
-      format: extname(fileName).slice(1)
-    })
-
-    return audio.get({ plain: true })
+  ipcMain.handle('audios-import', async ({ sender }, { token, name, category }: AudioResourceDetails & { token: string }) => {
+    const pending = pendingAudioImports.get(sender)
+    if (!pending || pending.file.token !== token || pending.saving) throw new Error('Audio selection unavailable')
+    const audioName = validateAudioName(name) || pending.file.defaultName
+    pending.saving = true
+    const id = uuidv4()
+    try {
+      await withAudioLibraryCopy(id, pending.format, pending.sourcePath, async (filePath) => {
+        await models.Audio.sequelize!.transaction(async (transaction) => {
+          const nextCategory = await resolveAudioCategory(category, transaction)
+          await models.Audio.create({
+            id,
+            name: audioName,
+            category: nextCategory,
+            filePath,
+            format: pending.format
+          }, { transaction })
+        })
+      })
+      if (pendingAudioImports.get(sender) === pending) pendingAudioImports.delete(sender)
+      return id
+    } finally {
+      pending.saving = false
+    }
   })
 
   ipcMain.handle('audios-delete', async (_, { id }: { id: string }) => {

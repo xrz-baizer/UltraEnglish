@@ -43,12 +43,12 @@ export function installAppMenu(getMainWindow: () => BrowserWindow | null): void 
       label: label('文件', 'File'),
       submenu: [
         {
-          label: label('词汇资料库', 'Vocabulary Library'),
+          label: label('拼写练习', 'Spelling Practice'),
           accelerator: 'CmdOrCtrl+2',
           click: command('vocabulary')
         },
         {
-          label: label('音频资料库', 'Audio Library'),
+          label: label('跟读训练', 'Shadowing Practice'),
           accelerator: 'CmdOrCtrl+3',
           click: command('audios')
         },
@@ -62,7 +62,7 @@ export function installAppMenu(getMainWindow: () => BrowserWindow | null): void 
       label: label('显示', 'View'),
       submenu: [
         {
-          label: label('学习概览', 'Learning Overview'),
+          label: label('首页', 'Home'),
           accelerator: 'CmdOrCtrl+1',
           click: command('home')
         },

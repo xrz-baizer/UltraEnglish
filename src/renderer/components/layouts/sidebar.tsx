@@ -6,24 +6,19 @@ import {
   BookOpen,
   Headphones,
   Settings,
-  LayoutGrid,
-  PanelLeft
+  AudioLines,
+  House
 } from 'lucide-react'
 import { useSettingsStore } from '@renderer/stores/settings-store'
 
 const items = [
-  { title: 'shell.overview', href: '/', icon: LayoutGrid, key: '1' },
-  { title: 'shell.vocabulary', href: '/vocabulary', icon: BookOpen, key: '2' },
-  { title: 'shell.audios', href: '/audios', icon: Headphones, key: '3' }
+  { title: 'shell.overview', href: '/', icon: House },
+  { title: 'audioGeneration.title', href: '/audio-generation', icon: AudioLines },
+  { title: 'shell.audios', href: '/audios', icon: Headphones },
+  { title: 'shell.vocabulary', href: '/vocabulary', icon: BookOpen }
 ]
 
-export function Sidebar({
-  collapsed,
-  onToggle
-}: {
-  collapsed: boolean
-  onToggle: () => void
-}) {
+export function Sidebar({ collapsed }: { collapsed: boolean }) {
   const { t, i18n } = useTranslation()
   const sidebarRef = useRef<HTMLElement>(null)
   const fontScale = useSettingsStore((state) => state.settings.basic.fontScale)
@@ -85,6 +80,7 @@ export function Sidebar({
   return (
     <aside
       ref={sidebarRef}
+      id="workspace-sidebar"
       className="app-sidebar"
       aria-label={t('shell.navigation')}
     >
@@ -116,18 +112,6 @@ export function Sidebar({
       </nav>
 
       <div className="sidebar-bottom">
-        <button
-          className="sidebar-link"
-          onClick={onToggle}
-          aria-expanded={!collapsed}
-          title={t(collapsed ? 'shell.expandSidebar' : 'shell.collapseSidebar')}
-          aria-label={t(
-            collapsed ? 'shell.expandSidebar' : 'shell.collapseSidebar'
-          )}
-        >
-          <PanelLeft size={19} />
-          {!collapsed && <span>{t('shell.collapseSidebar')}</span>}
-        </button>
         <button
           className="sidebar-link"
           onClick={() => openSettings(true)}

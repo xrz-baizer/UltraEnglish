@@ -37,7 +37,8 @@ export default defineConfig({
       outDir: 'app-build/main',
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/main/index.ts')
+          index: resolve(__dirname, 'src/main/index.ts'),
+          'audio-generation-worker': resolve(__dirname, 'src/main/services/audio-generation-worker.ts')
         }
       }
     }

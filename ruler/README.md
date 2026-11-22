@@ -15,4 +15,4 @@
 
 路径约定：除非另有说明，各文档中的源码路径均相对于 `ultra-english-client/`。共享修改记录位于 `../Requirement/CHANGELOG.md`。
 
-本次设计依据为环境提供的 `apple-liquid-glass` 和 `macos-app-design`；用户指定名称 `apple-design-skill` 在当前环境中未找到，未创建或伪装同名 Skill。规则可独立阅读，不要求其他开发者具有相同 Skill 安装路径。
+

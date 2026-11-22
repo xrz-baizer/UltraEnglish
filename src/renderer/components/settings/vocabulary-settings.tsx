@@ -5,6 +5,7 @@ import { useSettingsStore } from '@renderer/stores/settings-store'
 import { cn } from '@renderer/lib/utils'
 import { MAX_WORD_REPEAT } from '@renderer/lib/vocabulary-repeat'
 import { WORD_FONT_OPTIONS as wordFontOptions } from '@renderer/lib/vocabulary-typography'
+import { Select } from '@renderer/components/ui/select'
 
 const phoneticOptions = [
   { value: 'us', labelKey: 'settings.vocabulary.phoneticUs' },
@@ -414,28 +415,26 @@ export function VocabularySettings() {
             <h4 className="text-sm font-semibold">{t('settings.vocabulary.spellingFont')}</h4>
             <label className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-sm font-medium">{t('settings.vocabulary.wordFont')}</span>
-              <select
-                aria-label={t('settings.vocabulary.wordFont')}
+              <Select
+                label={t('settings.vocabulary.wordFont')}
                 value={resolvedWordFont}
-                onChange={event => updateVocabularySettings({ wordFontFamily: event.target.value })}
-                className="glass-field max-w-full rounded-lg border px-3 py-2 text-sm"
-              >
-                {wordFontOptions.map(option => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
-              </select>
+                onValueChange={(wordFontFamily) => void updateVocabularySettings({ wordFontFamily })}
+                options={wordFontOptions.map(({ value, labelKey }) => ({ value, label: t(labelKey) }))}
+              />
             </label>
-            <label className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
+            <label className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/30 p-3">
               <span className="text-sm font-medium">{t('settings.vocabulary.wordFontBold')}</span>
-              <select
-                aria-label={t('settings.vocabulary.wordFontBold')}
-                className="glass-field rounded-lg border px-3 py-2 text-sm"
-                value={vocabulary.wordFontWeight}
-                onChange={event => updateVocabularySettings({ wordFontWeight: Number(event.target.value) as 400 | 500 | 600 | 700 })}
-              >
-                <option value="400">{t('settings.audio.regular')}</option>
-                <option value="500">500</option>
-                <option value="600">600</option>
-                <option value="700">{t('settings.audio.bold')}</option>
-              </select>
+              <Select
+                label={t('settings.vocabulary.wordFontBold')}
+                value={String(vocabulary.wordFontWeight)}
+                onValueChange={(value) => void updateVocabularySettings({ wordFontWeight: Number(value) as 400 | 500 | 600 | 700 })}
+                options={[
+                  { value: '400', label: t('settings.audio.regular') },
+                  { value: '500', label: '500' },
+                  { value: '600', label: '600' },
+                  { value: '700', label: t('settings.audio.bold') }
+                ]}
+              />
             </label>
             <div className="grid gap-6 sm:grid-cols-2">
               <FontSizeControl

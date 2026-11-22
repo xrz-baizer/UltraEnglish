@@ -1,8 +1,10 @@
 import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
 import { join } from 'path'
+import { APP_LINKS } from '../shared/app-links'
 import { initDatabase } from './db'
 import { initializeAudioStorage } from './services/audio-storage'
 import { registerIpcHandlers } from './db/handlers'
+import { registerAudioGenerationHandlers } from './services/audio-generation'
 import { seedBuiltInDictionaries } from './db/seed'
 import { seedBuiltInAudio } from './db/seed-audio'
 import log from 'electron-log'
@@ -71,8 +73,10 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  win.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (Object.values(APP_LINKS).some((link) => link === url)) {
+      void shell.openExternal(url).catch((error) => log.warn('Failed to open application link:', error))
+    }
     return { action: 'deny' }
   })
 
@@ -112,6 +116,7 @@ const createMainWindow = async (): Promise<void> => {
 
     // Register IPC handlers
     registerIpcHandlers()
+    registerAudioGenerationHandlers()
 
     initialized = true
   }
@@ -124,6 +129,7 @@ const createMainWindow = async (): Promise<void> => {
 app.whenReady().then(() => {
   if (process.platform === 'darwin' && !app.isPackaged) app.dock?.setIcon(appIcon)
   installAppMenu(() => mainWindow)
+  ipcMain.handle('app-get-version', () => app.getVersion())
   ipcMain.handle('window-get-appearance', () => getWindowAppearance())
   ipcMain.handle('window-set-appearance', (_, theme: unknown) => {
     if (theme !== 'light' && theme !== 'dark' && theme !== 'system') return false

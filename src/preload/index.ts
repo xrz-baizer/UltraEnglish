@@ -1,9 +1,39 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { AppCommand, LearningOverview, WindowAppearance } from '../shared/app-commands'
+import type { AudioResourceDetails, SelectedAudioFile } from '../shared/audio-library'
+import { AUDIO_GENERATION_PROGRESS, GENERATION_RESOURCES_CHANGED } from '../shared/audio-generation'
+import type { GenerationDirectory, GenerationDownload, GenerationOptions, GeneratedAudio, GenerationPaths, GenerationSaveLocation, GenerationResourceId, GenerationResourceSnapshot, GenerationState } from '../shared/audio-generation'
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
+  getAudioGenerationPaths: () => ipcRenderer.invoke('audio-generation-paths'),
+  chooseAudioGenerationPath: (kind: GenerationDirectory) => ipcRenderer.invoke('audio-generation-choose-path', kind),
+  resetAudioGenerationPath: (kind: GenerationDirectory) => ipcRenderer.invoke('audio-generation-reset-path', kind),
+  getAudioGenerationState: () => ipcRenderer.invoke('audio-generation-state'),
+  getAudioGenerationHistory: () => ipcRenderer.invoke('audio-generation-history'),
+  getAudioGenerationSaveLocation: () => ipcRenderer.invoke('audio-generation-save-location'),
+  chooseAudioGenerationSaveLocation: (token?: string) => ipcRenderer.invoke('audio-generation-select-save-location', token),
+  startAudioGeneration: (text: string, options: GenerationOptions, name: string, locationToken?: string) =>
+    ipcRenderer.invoke('audio-generation-start', text, options, name, locationToken),
+  getAudioGenerationResources: () => ipcRenderer.invoke('audio-generation-resources'),
+  downloadAudioGenerationResources: (ids: GenerationResourceId[]) => ipcRenderer.invoke('audio-generation-download', ids),
+  onAudioGenerationResourcesChanged: (callback: (download: GenerationDownload | null) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, download: GenerationDownload | null) => callback(download)
+    ipcRenderer.on(GENERATION_RESOURCES_CHANGED, listener)
+    return () => ipcRenderer.removeListener(GENERATION_RESOURCES_CHANGED, listener)
+  },
+  cancelAudioGenerationDownload: () => ipcRenderer.invoke('audio-generation-cancel-download'),
+  retryGeneratedAudioSave: (fallback?: 'wav', locationToken?: string) => ipcRenderer.invoke('audio-generation-retry-save', fallback, locationToken),
+  previewGeneratedAudio: (id: string) => ipcRenderer.invoke('audio-generation-preview', id),
+  readGeneratedLibraryAudio: (id: string) => ipcRenderer.invoke('audio-generation-preview-library-audio', id),
+  revealGeneratedAudio: (id: string) => ipcRenderer.invoke('audio-generation-reveal', id),
+  importGeneratedAudio: (id: string) => ipcRenderer.invoke('audio-generation-import', id),
+  onAudioGenerationProgress: (callback: (state: GenerationState) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: GenerationState) => callback(state)
+    ipcRenderer.on(AUDIO_GENERATION_PROGRESS, listener)
+    return () => ipcRenderer.removeListener(AUDIO_GENERATION_PROGRESS, listener)
+  },
   alignSubtitleText: (audioId: string, text: string) => ipcRenderer.invoke('subtitle-align-text', {audioId,text}),
   getAudioCategories: () => ipcRenderer.invoke('audio-categories-list'),
   createAudioCategory: (name: string) => ipcRenderer.invoke('audio-categories-create', {name}),
@@ -11,6 +41,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteAudioCategory: (id: string) => ipcRenderer.invoke('audio-categories-delete', {id}),
   updateAudioCategory: (ids: string[], category: string) => ipcRenderer.invoke('audios-update-category', { ids, category }),
   writeClipboardText: (text: string) => ipcRenderer.invoke('clipboard-write-text', text),
+  getAppVersion: () => ipcRenderer.invoke('app-get-version'),
   getLearningOverview: () => ipcRenderer.invoke('learning-overview'),
   getWindowAppearance: () => ipcRenderer.invoke('window-get-appearance'),
   setWindowAppearance: (theme: 'light' | 'dark' | 'system') => ipcRenderer.invoke('window-set-appearance', theme),
@@ -67,7 +98,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAudios: (limit?: number, offset?: number) =>
     ipcRenderer.invoke('audios-find-all', { limit, offset }),
   getAudioById: (id: string) => ipcRenderer.invoke('audios-find-one', { id }),
-  importAudio: () => ipcRenderer.invoke('audios-import'),
+  selectAudioFile: () => ipcRenderer.invoke('audios-select-file'),
+  importAudio: (token: string, details: AudioResourceDetails) =>
+    ipcRenderer.invoke('audios-import', { token, ...details }),
+  updateAudioDetails: (id: string, details: AudioResourceDetails) =>
+    ipcRenderer.invoke('audios-update-details', { id, ...details }),
   openAudioStorageFolder: () => ipcRenderer.invoke('audios-open-storage-folder'),
   getAudioStoragePaths: () => ipcRenderer.invoke('audio-storage-paths'),
   chooseAudioStorageDirectory: (kind: 'models' | 'audios') => ipcRenderer.invoke('audio-storage-choose', { kind }),
@@ -117,6 +152,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // Type definitions for the exposed API
 export interface ElectronAPI {
+  getAudioGenerationPaths: () => Promise<GenerationPaths>
+  chooseAudioGenerationPath: (kind: GenerationDirectory) => Promise<GenerationPaths | null>
+  resetAudioGenerationPath: (kind: GenerationDirectory) => Promise<GenerationPaths>
+  getAudioGenerationState: () => Promise<{ state: GenerationState; text: string; options: GenerationOptions }>
+  getAudioGenerationHistory: () => Promise<GeneratedAudio[]>
+  getAudioGenerationSaveLocation: () => Promise<GenerationSaveLocation>
+  chooseAudioGenerationSaveLocation: (token?: string) => Promise<GenerationSaveLocation | null>
+  startAudioGeneration: (text: string, options: GenerationOptions, name: string, locationToken?: string) => Promise<void>
+  getAudioGenerationResources: () => Promise<GenerationResourceSnapshot>
+  downloadAudioGenerationResources: (ids: GenerationResourceId[]) => Promise<void>
+  onAudioGenerationResourcesChanged: (callback: (download: GenerationDownload | null) => void) => () => void
+  cancelAudioGenerationDownload: () => Promise<void>
+  retryGeneratedAudioSave: (fallback?: 'wav', locationToken?: string) => Promise<void>
+  previewGeneratedAudio: (id: string) => Promise<Uint8Array<ArrayBuffer>>
+  readGeneratedLibraryAudio: (id: string) => Promise<Uint8Array<ArrayBuffer>>
+  revealGeneratedAudio: (id: string) => Promise<void>
+  importGeneratedAudio: (id: string) => Promise<string>
+  onAudioGenerationProgress: (callback: (state: GenerationState) => void) => () => void
+  getAppVersion: () => Promise<string>
   getLearningOverview: () => Promise<LearningOverview>
   getWindowAppearance: () => Promise<WindowAppearance>
   setWindowAppearance: (theme: 'light' | 'dark' | 'system') => Promise<boolean>
@@ -157,7 +211,9 @@ export interface ElectronAPI {
   // Audios
   getAudios: (limit?: number, offset?: number) => Promise<unknown[]>
   getAudioById: (id: string) => Promise<unknown>
-  importAudio: () => Promise<unknown>
+  selectAudioFile: () => Promise<SelectedAudioFile | null>
+  importAudio: (token: string, details: AudioResourceDetails) => Promise<string>
+  updateAudioDetails: (id: string, details: AudioResourceDetails) => Promise<void>
   openAudioStorageFolder: () => Promise<string>
   getAudioStoragePaths: () => Promise<{ models: string; audios: string }>
   chooseAudioStorageDirectory: (kind: 'models' | 'audios') => Promise<string | null>

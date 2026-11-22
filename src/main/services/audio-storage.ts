@@ -1,10 +1,11 @@
 import { app, dialog } from 'electron'
-import { access, mkdir } from 'fs/promises'
+import { access, copyFile, mkdir, rm } from 'fs/promises'
 import { constants } from 'fs'
 import { join, isAbsolute } from 'path'
 import { randomUUID } from 'crypto'
 import { models } from '../db'
 import { configureModelDirectory, getUserModelsDir } from './whisper'
+import log from 'electron-log'
 
 export type StorageKind = 'models' | 'audios'
 export async function getAudioPreferences(): Promise<Record<string, unknown>> {
@@ -23,6 +24,26 @@ export async function getAudioStorageDirectory(): Promise<string> {
   return typeof custom === 'string' && isAbsolute(custom)
     ? custom
     : join(app.getPath('userData'), 'audios')
+}
+
+export async function withAudioLibraryCopy(
+  id: string,
+  format: string,
+  source: string,
+  persist: (filePath: string) => Promise<void>
+): Promise<void> {
+  const directory = await getAudioStorageDirectory()
+  await mkdir(directory, { recursive: true })
+  const target = join(directory, `${id}.${format}`)
+  await copyFile(source, target, constants.COPYFILE_EXCL)
+  try {
+    await persist(target)
+  } catch (error) {
+    await rm(target, { force: true }).catch((cleanupError: unknown) =>
+      log.error('Failed to clean up audio import:', cleanupError)
+    )
+    throw error
+  }
 }
 export async function getStoragePaths(): Promise<{ models: string; audios: string }> {
   return { models: getUserModelsDir(), audios: await getAudioStorageDirectory() }

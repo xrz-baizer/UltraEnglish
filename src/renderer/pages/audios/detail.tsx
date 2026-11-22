@@ -2,6 +2,7 @@ import { TranscriptionModelDialog } from './transcription-model-dialog'
 import { SubtitlesManager } from './subtitles-manager'
 import { ActionTooltip } from '@renderer/components/ui/action-tooltip'
 import { AudioNotes, type Note } from './audio-notes'
+import { AudioVolumeControl } from './audio-volume-control'
 import {
   Fragment,
   useCallback,
@@ -19,7 +20,6 @@ import {
   ALargeSmall,
   NotebookText,
   TextCursorInput,
-  FileText,
   Pause,
   Play,
   Repeat,
@@ -35,6 +35,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle
 } from '@renderer/components/ui/dialog'
 import { toast } from 'sonner'
@@ -49,10 +50,11 @@ import type { TranscriptionSegment } from '../../../shared/audio-transcription'
 interface AudioDetail {
   id: string
   name: string
-  filePath: string
+  fileUrl: string
   format?: string
 }
 interface Transcript {
+  engine?: string
   segments?: TranscriptionSegment[]
   error?: string
 }
@@ -61,17 +63,25 @@ interface Selection {
   to: number
 }
 
+type SubtitleDialog = 'manage' | 'text' | 'import' | 'generate'
+type SubtitleAction =
+  | { kind: 'generate'; modelId: string }
+  | { kind: 'text'; text: string }
+  | { kind: 'import' }
+
 export function AudioDetailPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [audio, setAudio] = useState<AudioDetail | null>(null)
   const [segments, setSegments] = useState<TranscriptionSegment[]>([])
+  const hasSubtitles = segments.length > 0
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState(0)
   const [loop, setLoop] = useState(false)
+  const [volume, setVolume] = useState(100)
   const [speed, setSpeed] = useState(1)
   const [speedDraft, setSpeedDraft] = useState('1')
   const changeSpeed = (value: number) => {
@@ -127,7 +137,7 @@ export function AudioDetailPage() {
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [loading])
+  }, [loading, hasSubtitles])
   const panelsRef = useRef<HTMLDivElement>(null)
   const draggingPanels = useRef(false)
   const [panelRatio, setPanelRatio] = useState(() => {
@@ -173,9 +183,7 @@ export function AudioDetailPage() {
     void updateAudioSettings({ sentenceFontSize: value })
   const [fullPlayback, setFullPlayback] = useState(false)
   const [selection, setSelection] = useState<Selection | null>(null)
-  const [managingSubtitles, setManagingSubtitles] = useState(false)
-  const [confirmImport, setConfirmImport] = useState(false)
-  const [confirmRegenerate, setConfirmRegenerate] = useState(false)
+  const [subtitleDialog, setSubtitleDialog] = useState<SubtitleDialog | null>(null)
   const [editorRequest, setEditorRequest] = useState(0)
   const [showInlineNotes, setShowInlineNotes] = useState(false)
   const [inlineNotes, setInlineNotes] = useState<Note[]>([])
@@ -188,6 +196,8 @@ export function AudioDetailPage() {
   const trackAnchor = useRef<number | null>(null)
   const sentenceScrollRef = useRef<HTMLDivElement>(null)
   const waveformRef = useRef<HTMLDivElement>(null)
+  const subtitleManagerTrigger = useRef<HTMLButtonElement>(null)
+  const audioMetadata = useRef<HTMLAudioElement>(null)
   const activeRowRef = useRef<HTMLButtonElement>(null)
   const pointerAnchor = useRef<number | null>(null)
   const selectionRef = useRef<Selection | null>(null)
@@ -199,9 +209,7 @@ export function AudioDetailPage() {
     () => (active ? getSegmentWords(active) : { words: [], estimated: false }),
     [active]
   )
-  const source = audio
-    ? `file://${audio.filePath.split('/').map(encodeURIComponent).join('/')}`
-    : ''
+  const source = audio?.fileUrl ?? ''
   const clipStart = active
     ? editingTiming
       ? Math.max(0, active.startTime - 3)
@@ -211,7 +219,7 @@ export function AudioDetailPage() {
     active && editingTiming
       ? { ...active, startTime: clipStart, endTime: active.endTime + 3 }
       : active
-  const clip = useAudioClip(source, clipSegment)
+  const clip = useAudioClip(active ? source : '', clipSegment)
   const trackGeometry = () => {
     const shadow = waveformRef.current?.firstElementChild?.shadowRoot
     const scroll = shadow?.querySelector('.scroll') as HTMLElement | null
@@ -239,13 +247,15 @@ export function AudioDetailPage() {
     setTrackRange(null)
     player.playSegment(time, player.duration, loop)
   }
+  const waveformSource = loading ? '' : clip.src
+  const playbackSource = active ? source : ''
   const waveform = useAudioWaveform(
     waveformRef,
-    loading ? '' : clip.src,
+    waveformSource,
     onWaveformSeek,
     Math.max(80, trackHeight - 108)
   )
-  const continuous = useContinuousAudio(source, (time) => {
+  const continuous = useContinuousAudio(playbackSource, (time) => {
     if (fullPlayback && !waveform.isLoading)
       waveform.seekTo(Math.max(0, time - clipStart))
   })
@@ -270,9 +280,7 @@ export function AudioDetailPage() {
               position + clipStart
             ),
           seekTo: (time: number) => continuous.seekTo(time + clipStart),
-          setPlaybackRate: continuous.setPlaybackRate,
-          setVolume: continuous.setVolume,
-          setMuted: continuous.setMuted
+          setPlaybackRate: continuous.setPlaybackRate
         }
       : {})
   }
@@ -304,11 +312,13 @@ export function AudioDetailPage() {
   }, [])
   useEffect(() => {
     let disposed = false
+    let previewUrl: string | undefined
     requestRef.current++
     setLoading(true)
     setAudio(null)
     setSegments([])
     setSelected(0)
+    setSubtitleDialog(null)
     setError(null)
     setBusy(false)
     changeSelection(null)
@@ -320,10 +330,18 @@ export function AudioDetailPage() {
       window.electronAPI.getAudioById(id),
       window.electronAPI.getTranscription(id)
     ])
-      .then(([audio, transcript]) => {
+      .then(async ([record, transcript]) => {
         if (disposed) return
-        setAudio(audio as AudioDetail | null)
-        setSegments((transcript as Transcript | null)?.segments || [])
+        const audio = record as AudioDetail | null
+        const subtitles = transcript as Transcript | null
+        // The Vite HTTP origin cannot load local file URLs.
+        if (audio && subtitles?.engine === 'kokoro' && /^https?:$/.test(window.location.protocol)) {
+          const bytes = await window.electronAPI.readGeneratedLibraryAudio(id)
+          if (disposed) return
+          previewUrl = URL.createObjectURL(new Blob([bytes], { type: audio.format === 'mp3' ? 'audio/mpeg' : 'audio/wav' }))
+        }
+        setAudio(audio && previewUrl ? { ...audio, fileUrl: previewUrl } : audio)
+        setSegments(subtitles?.segments || [])
       })
       .catch(() => {
         if (!disposed) setError(t('audio.loadFailed'))
@@ -333,6 +351,7 @@ export function AudioDetailPage() {
       })
     return () => {
       disposed = true
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [id, t])
 
@@ -346,11 +365,9 @@ export function AudioDetailPage() {
     if (ready) player.setPlaybackRate(speed)
   }, [speed, ready, player.setPlaybackRate])
   useEffect(() => {
-    if (ready) {
-      player.setVolume(1)
-      player.setMuted(false)
-    }
-  }, [ready, player.setVolume, player.setMuted])
+    waveform.setVolume(volume / 100)
+    continuous.setVolume(volume / 100)
+  }, [volume, waveformSource, playbackSource, waveform.setVolume, continuous.setVolume])
   useEffect(() => {
     if (!audioSettings.autoPlayOnSentenceChange) pendingPlay.current = false
     if (ready && pendingPlay.current) {
@@ -457,8 +474,8 @@ export function AudioDetailPage() {
         event.isComposing ||
         event.metaKey || event.ctrlKey || event.altKey ||
         useSettingsStore.getState().isOpen ||
-        managingSubtitles || confirmImport || confirmRegenerate ||
-        target?.closest('input,select,textarea,[contenteditable]:not([contenteditable="false"]),[role="dialog"],[role="slider"],[role="separator"]')
+        !active || subtitleDialog || busy ||
+        target?.closest('input,select,textarea,.audio-volume-control,[contenteditable]:not([contenteditable="false"]),[role="dialog"],[role="slider"],[role="separator"]')
       ) return
       if (event.key === 'Escape') {
         pendingPlay.current = false
@@ -488,26 +505,23 @@ export function AudioDetailPage() {
     // Capture before native button activation and the per-word handlers.
     window.addEventListener('keydown', handleKey, true)
     return () => window.removeEventListener('keydown', handleKey, true)
-  }, [togglePlay, chooseSentence, changeSelection, player.pause, ready, selected, active, loading, busy, managingSubtitles, confirmImport, confirmRegenerate])
+  }, [togglePlay, chooseSentence, changeSelection, player.pause, ready, selected, active, loading, busy, subtitleDialog])
 
-  const updateSubtitles = async (
-    generate: boolean,
-    modelId?: string,
-    pastedText?: string
-  ) => {
+  const updateSubtitles = async (action: SubtitleAction) => {
     if (!id || busy) return
+    const generate = action.kind === 'generate'
     const request = ++requestRef.current
     setBusy(true)
     setError(null)
     player.pause()
     try {
-      const result = (await (pastedText !== undefined
-        ? window.electronAPI.alignSubtitleText(id, pastedText)
+      const result = (await (action.kind === 'text'
+        ? window.electronAPI.alignSubtitleText(id, action.text)
         : generate
-          ? window.electronAPI.transcribeAudio(id, modelId)
+          ? window.electronAPI.transcribeAudio(id, action.modelId)
           : window.electronAPI.importSubtitle(
               id,
-              clip.duration
+              clip.duration || audioMetadata.current?.duration
             ))) as Transcript | null
       if (!mounted.current || request !== requestRef.current) return
       if (result?.error) {
@@ -523,15 +537,16 @@ export function AudioDetailPage() {
                   : 'audio.subtitleFailed'
               )
         )
-      } else if (result?.segments) {
+      } else if (result?.segments?.length) {
         setSegments(result.segments)
-        setManagingSubtitles(false)
+        setSubtitleDialog(null)
         setSelected(0)
         setTrackRange(null)
         setEditingTiming(false)
         changeSelection(null)
-      } else if (generate)
-        setError(t('audio.transcriptionErrors.transcription_error'))
+      } else if (result || action.kind !== 'import') {
+        setError(t(generate ? 'audio.transcriptionErrors.transcription_error' : 'audio.subtitleFailed'))
+      }
     } catch {
       if (mounted.current && request === requestRef.current)
         setError(
@@ -586,7 +601,7 @@ export function AudioDetailPage() {
     const onCopy = (event: ClipboardEvent) => {
       if (
         useSettingsStore.getState().isOpen ||
-        managingSubtitles ||
+        subtitleDialog ||
         (event.target as HTMLElement)?.closest?.(
           'input,textarea,[contenteditable=true]'
         )
@@ -603,7 +618,7 @@ export function AudioDetailPage() {
         event.key.toLowerCase() !== 'c' ||
         event.altKey ||
         useSettingsStore.getState().isOpen ||
-        managingSubtitles ||
+        subtitleDialog ||
         !active ||
         (event.target as HTMLElement)?.closest?.(
           'input,textarea,[contenteditable=true]'
@@ -622,7 +637,7 @@ export function AudioDetailPage() {
       document.removeEventListener('copy', onCopy)
       document.removeEventListener('keydown', onCopyKey)
     }
-  }, [selectedText, active, managingSubtitles])
+  }, [selectedText, active, subtitleDialog])
   useEffect(() => {
     if (!fullPlayback || !player.isPlaying || trackRange) return
     const index = segments.findIndex(
@@ -689,37 +704,50 @@ export function AudioDetailPage() {
         </button>
       </div>
     )
-  const globalTime = player.currentTime + clipStart
-  return (
-    <div className="audio-study" ref={studyRef}>
-      {managingSubtitles && (
+  const openSubtitleDialog = (dialog: SubtitleDialog) => {
+    pendingPlay.current = false
+    player.pause()
+    setError(null)
+    if (dialog === 'import' && !hasSubtitles) void updateSubtitles({ kind: 'import' })
+    else setSubtitleDialog(dialog)
+  }
+  const closeSubtitleDialog = () => setSubtitleDialog(null)
+  const returnFromSubtitleAction = () => setSubtitleDialog(hasSubtitles ? 'manage' : null)
+  const subtitleDialogs = (
+    <>
+      {(hasSubtitles ? subtitleDialog !== null : subtitleDialog === 'text') && (
         <SubtitlesManager
+          manageExisting={hasSubtitles}
           segments={segments}
           busy={busy}
           error={error}
-          onClose={() => setManagingSubtitles(false)}
+          onClose={closeSubtitleDialog}
+          onCloseAutoFocus={hasSubtitles ? () => subtitleManagerTrigger.current?.focus() : undefined}
           onSave={saveAllSubtitles}
-          onRegenerate={() => setConfirmRegenerate(true)}
-          onImport={() => setConfirmImport(true)}
-          onPasteText={(text) => void updateSubtitles(false, undefined, text)}
+          onRegenerate={() => openSubtitleDialog('generate')}
+          onImport={() => openSubtitleDialog('import')}
+          onPasteText={(text) => void updateSubtitles({ kind: 'text', text })}
         />
       )}
-      <Dialog open={confirmImport} onOpenChange={setConfirmImport}>
+      <Dialog
+        open={subtitleDialog === 'import'}
+        onOpenChange={(open) => { if (!open) returnFromSubtitleAction() }}
+      >
         <DialogContent aria-describedby={undefined}>
           <DialogTitle>{t('audio.confirmImportSubtitles')}</DialogTitle>
           <p className="text-sm">{t('audio.importSubtitlesWarning')}</p>
           <div className="flex justify-end gap-2">
             <button
               className="secondary-button"
-              onClick={() => setConfirmImport(false)}
+              onClick={returnFromSubtitleAction}
             >
               {t('common.cancel')}
             </button>
             <button
               className="primary-button"
               onClick={() => {
-                setConfirmImport(false)
-                void updateSubtitles(false)
+                returnFromSubtitleAction()
+                void updateSubtitles({ kind: 'import' })
               }}
             >
               {t('audio.uploadSubtitles')}
@@ -727,32 +755,76 @@ export function AudioDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
-      {confirmRegenerate && (
+      {subtitleDialog === 'generate' && (
         <TranscriptionModelDialog
-          onClose={() => setConfirmRegenerate(false)}
+          replacing={hasSubtitles}
+          onClose={returnFromSubtitleAction}
           onConfirm={(modelId) => {
-            setConfirmRegenerate(false)
-            void updateSubtitles(true, modelId)
+            returnFromSubtitleAction()
+            void updateSubtitles({ kind: 'generate', modelId })
           }}
         />
       )}
-      <header className="audio-study-header drag-region flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <Link
-          className="audio-back-link"
-          to="/audios"
-          aria-label={t('audio.backToLibrary')}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('audio.backToLibrary')}
-        </Link>
-        <h1
-          className="min-w-0 max-w-96 truncate font-medium"
-          title={audio.name}
-        >
-          {audio.name}
-        </h1>
+    </>
+  )
+  const status = busy ? (
+    <p role="status" className="text-sm text-muted-foreground">{t('audio.processingSubtitles')}</p>
+  ) : null
+  if (!hasSubtitles) {
+    return (
+      <div className="audio-study">
+        <h1 className="min-w-0 truncate px-2 py-2 font-medium" title={audio.name}>{audio.name}</h1>
+        <audio ref={audioMetadata} src={source} preload="metadata" />
+        {subtitleDialogs}
+        <Dialog open={subtitleDialog === null}>
+          <DialogContent
+            hideCloseButton
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onPointerDownOutside={(event) => event.preventDefault()}
+            className="audio-subtitle-setup"
+          >
+            <DialogTitle>{t('audio.setupSubtitles')}</DialogTitle>
+            <DialogDescription>{t('audio.setupSubtitlesHint', { name: audio.name })}</DialogDescription>
+            <div className="audio-subtitle-options">
+              <button className="primary-button" disabled={busy} onClick={() => openSubtitleDialog('generate')}>
+                {t('audio.generateSubtitles')}
+              </button>
+              <button className="secondary-button" disabled={busy} onClick={() => openSubtitleDialog('text')}>
+                {t('audio.pasteTextSubtitles')}
+              </button>
+              <button className="secondary-button" disabled={busy} onClick={() => openSubtitleDialog('import')}>
+                {t('audio.uploadSubtitles')}
+              </button>
+            </div>
+            {status}
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            <div className="flex justify-end">
+              <Link className="audio-back-link" to="/audios">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                {t('audio.backToLibrary')}
+              </Link>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
+
+  const globalTime = player.currentTime + clipStart
+  return (
+    <div className="audio-study" ref={studyRef}>
+      {subtitleDialogs}
+      <header className="audio-study-header drag-region flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+          <Link className="audio-back-link shrink-0" to="/audios">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            {t('audio.backToLibrary')}
+          </Link>
+          <h1 className="min-w-0 truncate font-medium" title={audio.name}>{audio.name}</h1>
+        </div>
       </header>
-      {error && (
+      {subtitleDialog === null && status}
+      {subtitleDialog === null && error && (
         <div
           role="alert"
           className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-sm"
@@ -778,13 +850,11 @@ export function AudioDetailPage() {
           <div className="sentence-toolbar glass-toolbar">
             <div className="sentence-toolbar-main">
               <button
-                className="secondary-button subtitle-manager-action audio-important-action"
+                ref={subtitleManagerTrigger}
+                className="primary-button"
+                aria-haspopup="dialog"
                 disabled={busy}
-                aria-label={t('audio.manageSubtitles')}
-                onClick={() => {
-                  player.pause()
-                  setManagingSubtitles(true)
-                }}
+                onClick={() => openSubtitleDialog('manage')}
               >
                 {t('audio.manageSubtitles')}
               </button>
@@ -1006,18 +1076,7 @@ export function AudioDetailPage() {
                     })}
                   </div>
                 </div>
-              ) : (
-                <div className="audio-generate-empty text-center text-muted-foreground">
-                  <FileText className="mx-auto mb-4 h-10 w-10 text-primary-ink/60" />
-                  <button
-                    disabled={busy}
-                    className="primary-button"
-                    onClick={() => setConfirmRegenerate(true)}
-                  >
-                    {t(busy ? 'audio.transcribing' : 'audio.generateSubtitles')}
-                  </button>
-                </div>
-              )}
+              ) : null}
             </div>
             <div className="sentence-notes">
               {active && (
@@ -1077,8 +1136,7 @@ export function AudioDetailPage() {
         />
         <section className="audio-transcript surface-panel">
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-1 thin-scrollbar">
-            {segments.length ? (
-              <ol className="space-y-2">
+            <ol className="space-y-2">
                 {segments.map((segment, index) => (
                   <li key={segment.id}>
                     <button
@@ -1107,15 +1165,7 @@ export function AudioDetailPage() {
                     </button>
                   </li>
                 ))}
-              </ol>
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
-                <FileText className="h-8 w-8" />
-                <span className="text-sm">
-                  {t(busy ? 'audio.transcribing' : 'audio.noSubtitles')}
-                </span>
-              </div>
-            )}
+            </ol>
           </div>
         </section>
       </div>
@@ -1489,6 +1539,7 @@ export function AudioDetailPage() {
                 </ActionTooltip>
               </>
             )}
+            <AudioVolumeControl volume={volume} onVolumeChange={setVolume} />
           </div>
         </div>
       </section>

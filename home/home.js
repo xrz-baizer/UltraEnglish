@@ -15,6 +15,8 @@ const nodes = Array.from(document.querySelectorAll('[data-en]'));
 nodes.forEach(node => { node.dataset.zh = node.textContent; });
 const labeledNodes = Array.from(document.querySelectorAll('[data-en-label]'));
 labeledNodes.forEach(node => { node.dataset.zhLabel = node.getAttribute('aria-label'); });
+const description = document.querySelector('meta[name="description"]');
+const chineseDescription = description.content;
 const sentences = [
   'Struggling to keep up with long English sentences, even after listening again?',
   'Pick a short phrase, and practise it on repeat.',
@@ -78,7 +80,7 @@ document.getElementById('language').addEventListener('click', event => {
   event.currentTarget.textContent = language === 'en' ? '中文' : 'EN';
   event.currentTarget.setAttribute('aria-label', language === 'en' ? '切换到简体中文' : 'Switch to English');
   document.title = text('UltraEnglish — 英语跟读，长句跟不上？选中其中一小段，反复跟读。', 'UltraEnglish — Long sentences hard to shadow? Pick a phrase. Practise on repeat.');
-  document.querySelector('meta[name="description"]').content = text('UltraEnglish 支持影子跟读、英语歌曲分段跟唱、自定义词库和句子拼写训练。导入音频，粘贴或生成字幕，选中片段反复练习。', 'Shadow speech, learn English songs phrase by phrase, and practise spelling. Import audio and paste or generate subtitles.');
+  description.content = text(chineseDescription, description.dataset.enContent);
   updateNote(); updateTyping(); updateWindowTitle(); updatePersonalPreview();
 });
 document.querySelectorAll('[data-sentence]').forEach(button => button.addEventListener('click', () => {
@@ -204,8 +206,9 @@ updateScrollEdge();
 
 const storySteps = [...document.querySelectorAll('.story-steps .feature')];
 const storyProgress = document.querySelectorAll('.story-progress i');
-const phraseWave = document.querySelector('.phrase-wave');
-for (const bar of wave.children) phraseWave.appendChild(bar.cloneNode(false));
+for (const preview of document.querySelectorAll('.story-wave')) {
+  for (const bar of wave.children) preview.appendChild(bar.cloneNode(false));
+}
 const spotlight = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
 storySteps.forEach(step => {
   step.addEventListener('pointermove', event => {

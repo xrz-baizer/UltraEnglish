@@ -9,20 +9,24 @@ import {
 import type { TranscriptionSegment } from '../../../shared/audio-transcription'
 
 interface Props {
+  manageExisting: boolean
   segments: TranscriptionSegment[]
   busy: boolean
   error: string | null
   onClose: () => void
+  onCloseAutoFocus?: () => void
   onSave: (segments: TranscriptionSegment[]) => Promise<void>
   onRegenerate: () => void
   onImport: () => void
   onPasteText: (text: string) => void
 }
 export function SubtitlesManager({
+  manageExisting,
   segments,
   busy,
   error,
   onClose,
+  onCloseAutoFocus,
   onSave,
   onRegenerate,
   onImport,
@@ -30,13 +34,14 @@ export function SubtitlesManager({
 }: Props) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState(segments)
-  const [showPaste, setShowPaste] = useState(false)
+  const [showPaste, setShowPaste] = useState(!manageExisting)
   const [pasteText, setPasteText] = useState('')
   const [confirmPaste, setConfirmPaste] = useState(false)
   const [saving, setSaving] = useState(false)
   const [discard, setDiscard] = useState(false)
-  const rowsDirty = draft.some((segment,index)=>segment.text!==segments[index]?.text)
+  const rowsDirty = draft.some((segment, index) => segment.text !== segments[index]?.text)
   const dirty = !!pasteText.trim() || rowsDirty
+  const pasteAction = t(manageExisting ? 'audio.alignPastedSubtitles' : 'audio.alignNewSubtitles')
   const close = () => {
     if (busy || saving) return
     if (dirty) setDiscard(true)
@@ -66,35 +71,29 @@ export function SubtitlesManager({
         <DialogContent
           className="subtitles-manager"
           aria-describedby={undefined}
+          onCloseAutoFocus={onCloseAutoFocus && ((event) => {
+            event.preventDefault()
+            onCloseAutoFocus()
+          })}
         >
-          <DialogTitle>{t('audio.manageSubtitles')}</DialogTitle>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="secondary-button"
-              disabled={busy || saving}
-              onClick={() => setShowPaste((value) => !value)}
-            >
-              {t(
-                showPaste
-                  ? 'audio.backToSubtitleRows'
-                  : 'audio.pasteTextSubtitles'
-              )}
-            </button>
-            <button
-              className="secondary-button"
-              disabled={busy || saving}
-              onClick={onImport}
-            >
-              {t('audio.uploadSubtitles')}
-            </button>
-            <button
-              className="secondary-button"
-              disabled={busy || saving}
-              onClick={onRegenerate}
-            >
-              {t('audio.regenerateSubtitles')}
-            </button>
-          </div>
+          <DialogTitle>{t(manageExisting ? 'audio.manageSubtitles' : 'audio.pasteTextSubtitles')}</DialogTitle>
+          {manageExisting && (
+            <div className="audio-subtitle-options">
+              <button
+                className="secondary-button"
+                disabled={busy || saving}
+                onClick={() => setShowPaste((value) => !value)}
+              >
+                {t(showPaste ? 'audio.backToSubtitleRows' : 'audio.pasteTextSubtitles')}
+              </button>
+              <button className="secondary-button" disabled={busy || saving} onClick={onImport}>
+                {t('audio.uploadSubtitles')}
+              </button>
+              <button className="secondary-button" disabled={busy || saving} onClick={onRegenerate}>
+                {t('audio.regenerateSubtitles')}
+              </button>
+            </div>
+          )}
           {busy && (
             <p role="status" className="text-sm text-muted-foreground">
               {t('audio.processingSubtitles')}
@@ -110,12 +109,16 @@ export function SubtitlesManager({
               <textarea
                 className="glass-field rounded-lg border p-3"
                 aria-label={t('audio.completeSubtitleText')}
+                aria-describedby="subtitle-paragraph-hint"
                 placeholder={t('audio.pasteSubtitlePlaceholder')}
                 value={pasteText}
                 maxLength={200000}
                 disabled={busy || saving}
                 onChange={(event) => setPasteText(event.target.value)}
               />
+              <p id="subtitle-paragraph-hint" className="mt-2 text-sm text-muted-foreground">
+                {t('audio.subtitleParagraphHint')}
+              </p>
             </div>
           ) : (
             <div className="subtitle-editor-list">
@@ -162,9 +165,12 @@ export function SubtitlesManager({
               <button
                 className="primary-button"
                 disabled={busy || saving || !pasteText.trim()}
-                onClick={() => setConfirmPaste(true)}
+                onClick={() => {
+                  if (manageExisting) setConfirmPaste(true)
+                  else onPasteText(pasteText)
+                }}
               >
-                {t('audio.alignPastedSubtitles')}
+                {pasteAction}
               </button>
             ) : (
               <button
@@ -201,7 +207,7 @@ export function SubtitlesManager({
                 onPasteText(pasteText)
               }}
             >
-              {t('audio.alignPastedSubtitles')}
+              {pasteAction}
             </button>
           </div>
         </DialogContent>

@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { normalizeWordRepeat } from '@renderer/lib/vocabulary-repeat'
 import { normalizeTheme, type Theme } from '@renderer/lib/theme'
+import { DEFAULT_GENERATION_OPTIONS, isGenerationQuality, isGenerationVoice } from '../../shared/audio-generation'
+import type { GenerationOptions } from '../../shared/audio-generation'
 
 export interface VocabularySettings {
   phonetic: 'us' | 'uk' | 'close'
@@ -74,11 +76,14 @@ export interface AudioSettings {
   soundVolume: number
 }
 
+type AudioGenerationSettings = Pick<GenerationOptions, 'quality' | 'voice'>
+
 export interface AppSettings {
   user: UserSettings
   basic: BasicSettings
   vocabulary: VocabularySettings
   audio: AudioSettings
+  audioGeneration: AudioGenerationSettings
   hotkeys: HotkeySettings
 }
 
@@ -132,6 +137,10 @@ export const defaultSettings: AppSettings = {
     autoPlayOnSentenceChange: false,
     soundVolume: 80
   },
+  audioGeneration: {
+    quality: DEFAULT_GENERATION_OPTIONS.quality,
+    voice: DEFAULT_GENERATION_OPTIONS.voice
+  },
   hotkeys: {
     prevWord: 'meta+[',
     nextWord: 'meta+]',
@@ -158,8 +167,11 @@ interface SettingsStore {
   updateBasicSettings: (updates: Partial<BasicSettings>) => Promise<void>
   updateVocabularySettings: (updates: Partial<VocabularySettings>) => Promise<void>
   updateAudioSettings: (updates: Partial<AudioSettings>) => Promise<void>
+  updateAudioGenerationSettings: (updates: Partial<AudioGenerationSettings>) => Promise<void>
   updateHotkeySettings: (updates: Partial<HotkeySettings>) => Promise<void>
 }
+
+let audioGenerationSettingsSave = Promise.resolve()
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
   settings: defaultSettings,
@@ -174,6 +186,8 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   loadSettings: async () => {
     set({ isLoading: true })
+    const previousGeneration = get().settings.audioGeneration
+    const savingGeneration = get().isSaving
     try {
       const result = await window.electronAPI.getSettings() as any
       if (result) {
@@ -186,12 +200,21 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
           return fallback
         }
 
+        const quality: unknown = result.audioGeneration?.quality
+        const voice: unknown = result.audioGeneration?.voice
+        const currentGeneration = get().settings.audioGeneration
+        const audioGeneration = savingGeneration || currentGeneration !== previousGeneration ? currentGeneration : {
+          quality: isGenerationQuality(quality) ? quality : defaultSettings.audioGeneration.quality,
+          voice: isGenerationVoice(voice) ? voice : defaultSettings.audioGeneration.voice
+        }
+
         // Merge with defaults to ensure all fields exist
         const merged: AppSettings = {
           user: { ...defaultSettings.user, ...(result.user || {}) },
           basic: { ...defaultSettings.basic, ...(result.basic || {}) },
           vocabulary: { ...defaultSettings.vocabulary, ...(result.vocabulary || {}) },
           audio: { ...defaultSettings.audio, ...(result.audio || {}) },
+          audioGeneration,
           hotkeys: { ...defaultSettings.hotkeys, ...(result.hotkeys || {}) }
         }
 
@@ -280,7 +303,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ settings: newSettings, isSaving: true })
 
     try {
-      await window.electronAPI.updateSettings(newSettings)
+      await window.electronAPI.updateSettings(updates)
     } catch (error) {
       console.error('Failed to save settings:', error)
       // Revert on error
@@ -320,6 +343,14 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     const { settings } = get()
     const newAudio = { ...settings.audio, ...updates }
     await get().updateSettings({ audio: newAudio })
+  },
+
+  updateAudioGenerationSettings: (updates) => {
+    audioGenerationSettingsSave = audioGenerationSettingsSave.then(() => {
+      const { settings } = get()
+      return get().updateSettings({ audioGeneration: { ...settings.audioGeneration, ...updates } })
+    })
+    return audioGenerationSettingsSave
   },
 
   updateHotkeySettings: async (updates) => {

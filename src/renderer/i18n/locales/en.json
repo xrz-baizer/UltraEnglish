@@ -1,4 +1,109 @@
 {
+  "audioGeneration": {
+    "title": "Generate Audio",
+    "generate": "Generate",
+    "open": "Open Audio Generation",
+    "description": "Turn English text into a WAV or MP3 on this device.",
+    "input": "English text",
+    "placeholder": "Type or paste the English sentences you want to convert",
+    "count": "{{current}} / {{max}} characters",
+    "checking": "Checking the speech model…",
+    "generating": "Generating audio…",
+    "generatingProgress": "{{completed}} of {{total}} segments complete",
+    "saving": "Saving audio…",
+    "retrySave": "Retry Save",
+    "model": {
+      "downloadModel": "Download selected model · {{size}}",
+      "downloadVoice": "Download selected voice · {{size}}",
+      "downloadResource": "Download {{name}}",
+      "downloading": "Downloading speech resources…",
+      "progress": "Downloaded {{received}} of {{total}}",
+      "checking": "Checking",
+      "ready": "Ready",
+      "missing": "Not downloaded",
+      "requiredModel": "Download the selected model from the Model quality menu, then click Generate again.",
+      "requiredVoice": "Download the selected voice from the Voice menu, then click Generate again.",
+      "requiredBoth": "Download the selected model and voice from their menus, then click Generate again."
+    },
+    "result": {
+      "title": "Audio saved",
+      "preview": "Listen",
+      "reveal": "Show in Folder",
+      "import": "Import to Audio Library",
+      "importing": "Importing…",
+      "imported": "Audio and subtitles added to your library.",
+      "open": "Open Audio",
+      "description": "Preview the audio or add it to your shadowing library with subtitles.",
+      "loadingPreview": "Loading preview…"
+    },
+    "settings": {
+      "models": "Speech Models",
+      "voices": "Voices",
+      "model": "Speech model folder",
+      "output": "Default audio save folder",
+      "choose": "Choose Folder",
+      "reset": "Restore Default",
+      "pathFailed": "Unable to use this folder. {{detail}}",
+      "loadFailed": "Unable to load the audio generation folders."
+    },
+    "errors": {
+      "tooLong": "Shorten the text to 10,000 characters or fewer.",
+      "operation": "Unable to complete the action. Try again.",
+      "model-directory": "The speech model folder is unavailable. Choose another folder or restore the default in Settings.",
+      "download": "Download failed. Check your connection and try again.",
+      "synthesis": "Unable to generate speech. Check the English text and try again.",
+      "save": "Unable to save the audio file. Check the save folder and retry.",
+      "preview": "Unable to play the saved audio.",
+      "reveal": "Unable to find the saved audio.",
+      "import": "Unable to import the audio file and subtitles. Check the saved file and your Audio Library folder, then try again.",
+      "unsupportedText": "Use English letters, digits and English punctuation only. Remove any other characters.",
+      "englishRequired": "Enter at least one English letter.",
+      "no-ffmpeg": "MP3 export needs FFmpeg with libmp3lame. You can save this audio as WAV.",
+      "encode": "Could not encode MP3. Check that FFmpeg supports libmp3lame, or save as WAV.",
+      "resources": "Unable to load model and voice status."
+    },
+    "options": {
+      "quality": "Model quality",
+      "voice": "Voice",
+      "format": "Format",
+      "qualities": {
+        "q8": "Standard (Q8)",
+        "fp32": "High quality (FP32)"
+      },
+      "voices": {
+        "af_heart": "Heart · US female",
+        "am_adam": "Adam · US male",
+        "bf_emma": "Emma · UK female"
+      }
+    },
+    "font": {
+      "label": "Input font size",
+      "smaller": "Decrease input font size",
+      "larger": "Increase input font size"
+    },
+    "encoding": "Encoding MP3…",
+    "retryMp3": "Retry MP3",
+    "saveAsWav": "Save as WAV",
+    "speed": {
+      "label": "Speed",
+      "smaller": "Decrease speed",
+      "larger": "Increase speed"
+    },
+    "history": {
+      "title": "Generation History",
+      "view": "View Result",
+      "loadFailed": "Unable to load generation history.",
+      "open": "View All Generation History"
+    },
+    "saveDialog": {
+      "title": "Save Generated Audio",
+      "description": "Confirm the file name and save location. The output format is {{format}}.",
+      "name": "Audio name",
+      "path": "Save location",
+      "chooseFailed": "Unable to use this folder. Choose another save location.",
+      "invalidName": "Use a supported file name without special characters and within the length limit."
+    }
+  },
   "common": {
     "add": "Add",
     "default": "Default",
@@ -32,6 +137,9 @@
     "signUp": "Sign Up"
   },
   "home": {
+    "generationDescription": "Turn English text into MP3 or WAV and add it to your library with subtitles.",
+    "shadowingDescription": "Select a word, phrase, or part of the waveform to loop and shadow.",
+    "spellingDescription": "Practice spelling by chapter and pick up where you left off.",
     "welcome": "Welcome to UltraEnglish",
     "subtitle": "Your English learning companion",
     "vocabularyPractice": "Vocabulary Practice",
@@ -215,8 +323,21 @@
     "subtitle": "Import audio files for listening practice",
     "importAudio": "Import Audio",
     "addResource": "Add Resource",
+    "audioFile": "Audio file",
+    "chooseAudioFile": "Choose File",
+    "changeAudioFile": "Change File",
+    "defaultAudioNameHint": "Leave the name blank to use the file name without its extension.",
+    "confirmAddResource": "Confirm Add",
+    "editResource": "Edit Resource",
+    "selectAudioFailed": "Could not select this audio file. Please try again.",
+    "importAudioFailed": "Could not add the audio. Check the file and storage folder, then try again.",
+    "saveAudioFailed": "Could not save the resource details. Please try again.",
+    "pagination": "Audio list pagination",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "pageNumber": "Page {{page}} of {{total}}",
     "batchAdd": "Batch Add",
-    "batchDelete": "Batch Delete",
+    "batchDeleteFailed": "Some audio items could not be deleted. Try again.",
     "batchDeleteConfirm": "Are you sure you want to delete {{count}} selected audio(s)?",
     "manageCategories": "Manage categories",
     "allCategories": "All Categories",
@@ -359,6 +480,8 @@
     "enableLoop": "Enable loop playback",
     "disableLoop": "Disable loop playback",
     "manageSubtitles": "Manage subtitles",
+    "setupSubtitles": "Add Subtitles",
+    "setupSubtitlesHint": "Add subtitles to “{{name}}” to start playback and practice sentence by sentence.",
     "uploadSubtitles": "Import subtitles (LRC / TXT / SRT / VTT)",
     "saveAllSubtitles": "Save all changes",
     "subtitleRow": "Subtitle {{number}}",
@@ -376,6 +499,8 @@
     "completeSubtitleText": "Complete subtitle text",
     "pasteSubtitlePlaceholder": "Paste the complete text matching this audio…",
     "alignPastedSubtitles": "Align and replace subtitles",
+    "alignNewSubtitles": "Align and save subtitles",
+    "subtitleParagraphHint": "Use blank lines to set subtitle breaks.",
     "confirmPasteSubtitles": "Align text and replace all subtitles?"
   },
   "settings": {
@@ -384,11 +509,23 @@
     "categories": {
       "user": "User",
       "basic": "Basic",
-      "vocabulary": "Vocabulary",
-      "audio": "Audio",
-      "hotkeys": "Hotkeys"
+      "vocabulary": "Spelling Practice Settings",
+      "audio": "Shadowing Practice Settings",
+      "hotkeys": "Hotkeys",
+      "audioGeneration": "Audio Generation Settings",
+      "about": "About"
+    },
+    "about": {
+      "version": "Version {{version}}",
+      "versionUnavailable": "Could not read the app version",
+      "links": "Links",
+      "website": "Official website",
+      "github": "GitHub repository",
+      "issues": "Report an issue (GitHub Issues)"
     },
     "appearance": "Appearance",
+    "display": "Display Settings",
+    "storageLocations": "Storage Locations",
     "theme": "Theme",
     "themeDesc": "Choose the interface theme style",
     "themes": {
@@ -505,6 +642,7 @@
       "pathFailed": "Cannot use this folder. Check read and write permissions.",
       "downloadFailed": "Model download failed. Please retry.",
       "sentenceFont": "Subtitle font",
+      "subtitleDisplay": "Subtitle Display",
       "systemFont": "System font",
       "sentenceSize": "Subtitle size",
       "fontWeight": "Subtitle weight",
@@ -567,9 +705,9 @@
     "fontScale": "Interface text size"
   },
   "shell": {
-    "overview": "Overview",
-    "vocabulary": "Vocabulary",
-    "audios": "Audio Library",
+    "overview": "Home",
+    "vocabulary": "Spelling Practice",
+    "audios": "Shadowing Practice",
     "navigation": "Main navigation",
     "library": "Library",
     "personalWorkspace": "Your learning space",
@@ -578,26 +716,23 @@
     "yourWorkspace": "Personal workspace",
     "signInOptional": "Sign in · Learn locally without an account",
     "account": "Manage your account",
-    "expandSidebar": "Expand sidebar",
-    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand",
+    "collapseSidebar": "Collapse",
     "learningSpace": "A little progress, every day",
     "studyWorkspace": "Study workspace"
   },
   "design": {
     "spellingPractice": "Spelling practice",
-    "shadowingPractice": "Shadowing practice",
+    "shadowingPractice": "Shadowing Practice",
     "homeTitle": "Make English an everyday thing.",
     "homeSubtitle": "A word, a conversation, a little progress. Find your own rhythm.",
     "readyToPractice": "PICK UP YOUR PRACTICE",
     "startHere": "A PLACE TO BEGIN",
     "buildVocabulary": "Your next step starts with a word.",
     "featuredDescription": "{{count}} entries. Turn recognition into recall, one keystroke at a time.",
-    "openBook": "Open vocabulary book",
-    "openAudioLibrary": "Open audio library",
     "featuredBook": "Featured book",
     "bookWordCount_one": "{{count, number}} word",
     "bookWordCount_other": "{{count, number}} words",
-    "exploreBooks": "Explore vocabulary",
     "practicedWords": "Practiced entries",
     "practicedWordsHint": "Typed correctly at least once",
     "booksInLibrary": "Vocabulary books",

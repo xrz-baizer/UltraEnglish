@@ -1,12 +1,74 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, AudioLines, BookOpen, Headphones, Keyboard, LibraryBig, RotateCcw } from 'lucide-react'
+import { ArrowRight, AudioLines, FileText, Headphones, Keyboard, LibraryBig, RotateCcw } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { LearningOverview } from '../../shared/app-commands'
 
-const WAVE_HEIGHTS = [
-  10, 16, 27, 43, 32, 55, 76, 62, 39, 24, 17, 30, 49, 74, 93, 68,
-  47, 35, 52, 69, 45, 28, 17, 25, 47, 66, 84, 63, 44, 30, 18, 9
+const GENERATION_WAVE = [8, 12, 17, 27, 18, 11, 22, 34, 49, 62, 46, 31, 19, 28, 43, 56, 42, 28, 18, 11, 6]
+const SHADOWING_WAVE = [8, 17, 29, 48, 64, 45, 29, 17, 12, 24, 39, 58, 70, 54, 37, 25, 33, 48, 32, 18, 8]
+const KEY_ROWS = ['QWER', 'ASDF', 'ZXC']
+
+function AudioIllustration({ icon: Icon, wave }: { icon: LucideIcon; wave: number[] }) {
+  return (
+    <svg viewBox="0 0 216 112" aria-hidden="true">
+      <Icon x={10} y={30} size={52} strokeWidth={1.25} />
+      <g className="overview-art-wave" stroke="currentColor" strokeWidth={3.4} strokeLinecap="round">
+        {wave.map((height, index) => {
+          const x = 76 + index * 6.2
+          return (
+            <line
+              key={x}
+              x1={x}
+              x2={x}
+              y1={56 - height / 2}
+              y2={56 + height / 2}
+              style={{ animationDelay: `${index * 24}ms` }}
+            />
+          )
+        })}
+      </g>
+    </svg>
+  )
+}
+
+function KeyboardIllustration() {
+  return (
+    <svg viewBox="0 0 216 112" aria-hidden="true">
+      {KEY_ROWS.flatMap((row, rowIndex) => Array.from(row, (letter, column) => {
+        const x = 24 + rowIndex * 7 + column * 43
+        const y = 12 + rowIndex * 30
+        return (
+          <g className="overview-art-key" key={letter} style={{ animationDelay: `${(rowIndex * 4 + column) * 46}ms` }}>
+            <rect className="overview-art-key-edge" x={x} y={y + 3} width={37} height={24} rx={5} />
+            <rect className="overview-art-key-face" x={x} y={y} width={37} height={24} rx={5} />
+            <text x={x + 18.5} y={y + 12} textAnchor="middle" dominantBaseline="central">{letter}</text>
+          </g>
+        )
+      }))}
+    </svg>
+  )
+}
+
+const HOME_FEATURES = [
+  {
+    to: '/audio-generation',
+    illustration: <AudioIllustration icon={FileText} wave={GENERATION_WAVE} />,
+    title: 'audioGeneration.title',
+    description: 'home.generationDescription'
+  },
+  {
+    to: '/audios',
+    illustration: <AudioIllustration icon={Headphones} wave={SHADOWING_WAVE} />,
+    title: 'design.shadowingPractice',
+    description: 'home.shadowingDescription'
+  },
+  {
+    to: '/vocabulary',
+    illustration: <KeyboardIllustration />,
+    title: 'design.spellingPractice',
+    description: 'home.spellingDescription'
+  }
 ]
 
 export function HomePage() {
@@ -39,77 +101,41 @@ export function HomePage() {
     }
   }, [loadOverview])
 
-  const featured = overview?.featuredBook
   return (
     <div className="content-container home-page">
-      <div className="page-heading">
-        <h1>{t('shell.overview')}</h1>
+      <header className="library-heading">
+        <div className="page-heading">
+          <h1>{t('shell.overview')}</h1>
+        </div>
+      </header>
+      <div className="overview-entry-list">
+        {HOME_FEATURES.map(({ to, illustration, title, description }) => (
+          <Link key={to} to={to} className="overview-feature surface-panel">
+            <div className="overview-feature-art">{illustration}</div>
+            <div className="overview-feature-copy">
+              <h2>{t(title)}</h2>
+              <p>{t(description)}</p>
+            </div>
+            <ArrowRight className="overview-feature-arrow" size={19} aria-hidden="true" />
+          </Link>
+        ))}
       </div>
       {error && (
         <div className="inline-error" role="alert">
           {t('design.loadError')}
-          <button className="text-button" onClick={loadOverview}>
-            <RotateCcw size={14} />
+          <button type="button" className="text-button" onClick={loadOverview}>
+            <RotateCcw size={14} aria-hidden="true" />
             {t('common.retry')}
           </button>
         </div>
       )}
-      <div className="overview-entry-grid">
-        <section className="learning-feature surface-panel" aria-labelledby="continue-title">
-          <div className="feature-copy">
-            <h2 id="continue-title">{t('design.spellingPractice')}</h2>
-            <div className="feature-actions">
-              <NavLink
-                to={featured ? `/vocabulary/${featured.id}` : '/vocabulary'}
-                className="primary-button"
-              >
-                {t(featured ? 'design.openBook' : 'design.exploreBooks')}
-                <ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" />
-              </NavLink>
-            </div>
-          </div>
-          <div className="overview-art" aria-hidden="true">
-            <BookOpen className="overview-book-art" strokeWidth={1.15} />
-            <div className="overview-keyboard">
-              {['QWER', 'ASDF', 'ZXC'].map((row, rowIndex) => (
-                <div className="overview-key-row" key={row}>
-                  {Array.from(row, (letter, column) => (
-                    <span key={letter} style={{ animationDelay: (rowIndex * 4 + column) * 65 + 'ms' }}>
-                      {letter}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section className="learning-feature surface-panel" aria-labelledby="audio-title">
-          <div className="feature-copy">
-            <h2 id="audio-title">{t('design.shadowingPractice')}</h2>
-            <div className="feature-actions">
-              <NavLink to="/audios" className="primary-button">
-                {t('design.openAudioLibrary')}
-                <ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" />
-              </NavLink>
-            </div>
-          </div>
-          <div className="overview-art" aria-hidden="true">
-            <Headphones className="overview-headphones" strokeWidth={1.25} />
-            <div className="overview-wave">
-              {WAVE_HEIGHTS.map((height, index) => (
-                <span key={index} style={{ height: height + '%', animationDelay: -(index % 7) * 0.19 + 's' }} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-      <div className="overview-progress-panel surface-panel">
-        <h2 className="overview-progress-title">{t('home.yourProgress')}</h2>
-        <section
-          className="overview-metrics"
-          aria-label={t('home.yourProgress')}
-          aria-busy={!overview && !error}
-        >
+      <section
+        className="overview-progress-panel surface-panel"
+        aria-labelledby="overview-progress-title"
+        aria-busy={!overview && !error}
+      >
+        <h2 id="overview-progress-title">{t('home.yourProgress')}</h2>
+        <ul className="overview-metrics" role="list">
           {[
             {
               value: overview?.practicedWords,
@@ -127,15 +153,20 @@ export function HomePage() {
               label: 'design.audioResources'
             }
           ].map((metric) => (
-            <div className="overview-metric" key={metric.label}>
-              <span><metric.icon size={16} strokeWidth={1.5} aria-hidden="true" />{t(metric.label)}</span>
-              <strong>
-                {metric.value === undefined ? '—' : metric.value.toLocaleString(i18n.language)}
-              </strong>
-            </div>
+            <li className="overview-metric" key={metric.label}>
+              <span className="overview-metric-icon" aria-hidden="true">
+                <metric.icon size={20} strokeWidth={1.6} />
+              </span>
+              <div className="overview-metric-copy">
+                <span>{t(metric.label)}</span>
+                <strong>
+                  {metric.value === undefined ? '—' : metric.value.toLocaleString(i18n.language)}
+                </strong>
+              </div>
+            </li>
           ))}
-        </section>
-      </div>
+        </ul>
+      </section>
     </div>
   )
 }

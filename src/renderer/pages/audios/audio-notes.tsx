@@ -27,6 +27,7 @@ export function AudioNotes({
   fontSize = 13
 }: Props) {
   const { t } = useTranslation()
+  const noteTextSize = `calc(${fontSize + 2}px * var(--font-scale, 1))`
   const key = `audio-notes:${audioId}:${segmentId}`
   const [notes, setNotes] = useState<Note[]>([])
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -131,6 +132,7 @@ export function AudioNotes({
             ref={inputRef}
             aria-label={t('audio.noteDraft')}
             className="glass-field note-draft mt-2 min-h-20 w-full rounded-lg border p-3"
+            style={{ fontSize: noteTextSize }}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             value={draft}
@@ -191,7 +193,7 @@ export function AudioNotes({
           </div>
           <p
             className="mt-2 whitespace-pre-wrap break-words"
-            style={{ fontSize: `calc(${fontSize + 2}px * var(--font-scale, 1))` }}
+            style={{ fontSize: noteTextSize }}
           >
             {note.text}
           </p>

@@ -3,8 +3,8 @@ import {
   DialogContent,
   DialogTitle
 } from '@renderer/components/ui/dialog'
-import { useEffect, useState, useMemo } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Trash2,
@@ -13,11 +13,16 @@ import {
   Plus,
   Search,
   Headphones,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Settings2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@renderer/lib/utils'
 import { Select } from '@renderer/components/ui/select'
+import { AudioResourceDialog } from './audio-resource-dialog'
 
 interface Audio {
   id: string
@@ -32,11 +37,17 @@ interface Audio {
 
 type SortField = 'name' | 'duration' | 'createdAt'
 type SortOrder = 'asc' | 'desc'
-
 export function AudiosPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [audios, setAudios] = useState<Audio[]>([])
   const [loading, setLoading] = useState(true)
+  const [resourceDialog, setResourceDialog] = useState<'add' | 'transcribe' | Audio | null>(null)
+  const addButton = useRef<HTMLButtonElement>(null)
+  const resourceTrigger = useRef<HTMLButtonElement | null>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const tableViewport = useRef<HTMLDivElement>(null)
   const [categoryTargets, setCategoryTargets] = useState<string[]>([])
   const [categoryDraft, setCategoryDraft] = useState('')
   const [savingCategory, setSavingCategory] = useState(false)
@@ -57,7 +68,8 @@ export function AudiosPage() {
       )
       await loadAudios()
       setCategoryTargets([])
-      setSelectedCategory('all')
+      setSelectedCategory('')
+      setPage(1)
       setSelectedIds(new Set())
     } catch {
       toast.error(t('audio.categorySaveFailed'))
@@ -66,10 +78,23 @@ export function AudiosPage() {
     }
   }
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageCapacity, setPageCapacity] = useState({ withPagination: 1, withoutPagination: 1 })
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [isManaging, setIsManaging] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (searchParams.get('action') !== 'transcribe') return
+    resourceTrigger.current = null
+    setResourceDialog('transcribe')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('action')
+    setSearchParams(nextParams, { replace: true })
+  }, [searchParams, setSearchParams])
 
   // Categories persist independently of audio rows.
   const [categoryRecords, setCategoryRecords] = useState<
@@ -111,7 +136,7 @@ export function AudiosPage() {
     }
 
     // Filter by category
-    if (selectedCategory !== 'all') {
+    if (selectedCategory) {
       result = result.filter((a) => a.category === selectedCategory)
     }
 
@@ -136,6 +161,62 @@ export function AudiosPage() {
     return result
   }, [audios, searchQuery, selectedCategory, sortField, sortOrder])
 
+  const hasRows = filteredAudios.length > 0
+  const showPagination = filteredAudios.length > pageCapacity.withoutPagination
+  const pageSize = showPagination ? pageCapacity.withPagination : pageCapacity.withoutPagination
+  const pageCount = Math.max(1, Math.ceil(filteredAudios.length / pageSize))
+  const currentPage = Math.min(page, pageCount)
+  const visibleAudios = useMemo(
+    () => filteredAudios.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredAudios, currentPage, pageSize]
+  )
+  const allVisibleSelected = visibleAudios.length > 0 &&
+    visibleAudios.every((audio) => selectedIds.has(audio.id))
+
+  useEffect(() => {
+    setPage((previous) => Math.min(previous, pageCount))
+  }, [pageCount])
+
+  useEffect(() => {
+    setSelectedIds((selected) => {
+      const visibleSelection = visibleAudios
+        .filter((audio) => selected.has(audio.id))
+        .map((audio) => audio.id)
+      return visibleSelection.length === selected.size ? selected : new Set(visibleSelection)
+    })
+  }, [visibleAudios])
+
+  useLayoutEffect(() => {
+    const toolbar = toolbarRef.current
+    const filters = toolbar?.firstElementChild
+    const viewport = tableViewport.current
+    const header = viewport?.querySelector('thead')
+    const body = viewport?.querySelector('tbody')
+    if (!toolbar || !filters || !viewport || !header || !body) return
+
+    const measure = () => {
+      const rowHeight = body.rows[0]?.getBoundingClientRect().height
+      if (!rowHeight || !viewport.clientHeight) return
+      const availableHeight = viewport.clientHeight - header.getBoundingClientRect().height
+      // When pagination wraps below the filters, exclude that extra height from the overflow decision.
+      const pagerHeight = Math.max(0, toolbar.getBoundingClientRect().height - filters.getBoundingClientRect().height)
+      const withPagination = Math.max(1, Math.floor(availableHeight / rowHeight))
+      const withoutPagination = Math.max(1, Math.floor((availableHeight + pagerHeight) / rowHeight))
+      setPageCapacity((previous) =>
+        previous.withPagination === withPagination && previous.withoutPagination === withoutPagination
+          ? previous
+          : { withPagination, withoutPagination }
+      )
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    for (const element of [toolbar, filters, viewport, header, body]) {
+      observer.observe(element)
+    }
+    return () => observer.disconnect()
+  }, [hasRows, showPagination, isManaging])
+
   useEffect(() => {
     loadAudios()
   }, [])
@@ -147,6 +228,9 @@ export function AudiosPage() {
         window.electronAPI.getAudioCategories()
       ])
       setCategoryRecords(storedCategories)
+      setSelectedCategory((category) =>
+        storedCategories.some((record) => record.name === category) ? category : ''
+      )
       // Transform to include additional fields
       const audiosWithMeta = (result as Audio[]).map((a) => ({
         ...a,
@@ -170,49 +254,34 @@ export function AudiosPage() {
     }
   }
 
-  const handleImport = async () => {
-    try {
-      const result = await window.electronAPI.importAudio()
-      if (result) {
-        loadAudios()
-      }
-    } catch (error) {
-      console.error('Failed to import audio:', error)
-    }
+  const showResourceDialog = (target: 'add' | Audio, trigger: HTMLButtonElement) => {
+    resourceTrigger.current = trigger
+    setResourceDialog(target)
   }
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!confirm(t('audio.deleteConfirm'))) return
-
-    try {
-      await window.electronAPI.deleteAudio(id)
-      setAudios(audios.filter((a) => a.id !== id))
-      setSelectedIds((prev) => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      })
-    } catch (error) {
-      console.error('Failed to delete audio:', error)
-    }
+  const changePage = (next: number) => {
+    setPage(next)
+    setSelectedIds(new Set())
   }
 
   const handleBatchDelete = async () => {
-    if (selectedIds.size === 0) return
-    if (!confirm(t('audio.batchDeleteConfirm', { count: selectedIds.size })))
-      return
+    if (!isManaging || deleting || !selectedIds.size) return
+    if (!confirm(t('audio.batchDeleteConfirm', { count: selectedIds.size }))) return
 
+    setDeleting(true)
+    const removed = new Set<string>()
     try {
       for (const id of selectedIds) {
         await window.electronAPI.deleteAudio(id)
+        removed.add(id)
       }
-      setAudios(audios.filter((a) => !selectedIds.has(a.id)))
-      setSelectedIds(new Set())
     } catch (error) {
       console.error('Failed to batch delete audios:', error)
+      toast.error(t('audio.batchDeleteFailed'))
+    } finally {
+      setAudios((current) => current.filter((audio) => !removed.has(audio.id)))
+      setSelectedIds((current) => new Set([...current].filter((id) => !removed.has(id))))
+      setDeleting(false)
     }
   }
 
@@ -229,14 +298,11 @@ export function AudiosPage() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === filteredAudios.length) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(filteredAudios.map((a) => a.id)))
-    }
+    setSelectedIds(new Set(allVisibleSelected ? [] : visibleAudios.map((audio) => audio.id)))
   }
 
   const toggleSort = (field: SortField) => {
+    changePage(1)
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -287,6 +353,34 @@ export function AudiosPage() {
 
   return (
     <div className="content-container audio-page">
+      {resourceDialog && (
+        <AudioResourceDialog
+          audio={typeof resourceDialog === 'string' ? undefined : resourceDialog}
+          initialCategory={typeof resourceDialog === 'string' ? selectedCategory : resourceDialog.category || ''}
+          categories={categories}
+          onClose={() => setResourceDialog(null)}
+          onSaved={(audioId) => {
+            if (resourceDialog === 'transcribe') {
+              navigate(`/audios/${audioId}`, { replace: true })
+              return
+            }
+            if (resourceDialog === 'add') {
+              setSearchQuery('')
+              setSelectedCategory('')
+              changePage(1)
+            } else {
+              setSelectedIds(new Set())
+            }
+            setResourceDialog(null)
+            void loadAudios()
+          }}
+          restoreFocus={() => {
+            const trigger = resourceTrigger.current
+            if (trigger?.isConnected) trigger.focus()
+            else addButton.current?.focus()
+          }}
+        />
+      )}
       <Dialog
         open={managingCategories}
         onOpenChange={(open) => {
@@ -431,49 +525,55 @@ export function AudiosPage() {
 
         {/* Library actions */}
         <div className="flex flex-wrap items-center gap-2">
+          {!isManaging && (
+            <button className="secondary-button" onClick={() => setManagingCategories(true)}>
+              <FolderEdit className="h-4 w-4" aria-hidden="true" />
+              {t('audio.manageCategories')}
+            </button>
+          )}
           <button
-            className="secondary-button"
-            onClick={() => setManagingCategories(true)}
+            className={isManaging ? 'primary-button' : 'secondary-button'}
+            disabled={deleting || (!isManaging && !hasRows)}
+            onClick={() => {
+              setSelectedIds(new Set())
+              setIsManaging(!isManaging)
+            }}
           >
-            <FolderEdit className="h-4 w-4" />
-            {t('audio.manageCategories')}
+            {!isManaging && <Settings2 className="h-4 w-4" aria-hidden="true" />}
+            {t(isManaging ? 'common.done' : 'common.manage')}
           </button>
-          <button
-            className="secondary-button"
-            style={{ display: selectedIds.size ? 'inline-flex' : 'none' }}
-            disabled={!selectedIds.size}
-            onClick={() => editCategory(Array.from(selectedIds))}
-          >
-            <FolderEdit className="h-4 w-4" />
-            {t('audio.editCategory')}
-          </button>
-          <button onClick={openStorageFolder} className="secondary-button">
-            <FolderOpen className="h-4 w-4" />
-            {t('audio.openStorageFolder')}
-          </button>
-          <button onClick={handleImport} className="secondary-button">
-            <Plus className="h-4 w-4" />
-            {t('audio.addResource')}
-          </button>
-
-          <button
-            onClick={handleBatchDelete}
-            disabled={selectedIds.size === 0}
-            className={cn(
-              'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-              selectedIds.size > 0
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive-hover'
-                : 'border border-border bg-background text-muted-foreground opacity-50 cursor-not-allowed'
-            )}
-          >
-            <Trash2 className="h-4 w-4" />
-            {t('audio.batchDelete')}
-          </button>
+          {isManaging ? (
+            selectedIds.size > 0 && (
+              <>
+                <button className="secondary-button" disabled={deleting}
+                  onClick={() => editCategory(Array.from(selectedIds))}>
+                  <FolderEdit className="h-4 w-4" aria-hidden="true" />
+                  {t('audio.editCategory')}
+                </button>
+                <button onClick={() => void handleBatchDelete()} disabled={deleting}
+                  className="inline-flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50">
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  {t('common.delete')} ({selectedIds.size})
+                </button>
+              </>
+            )
+          ) : (
+            <>
+              <button onClick={openStorageFolder} className="secondary-button">
+                <FolderOpen className="h-4 w-4" aria-hidden="true" />
+                {t('audio.openStorageFolder')}
+              </button>
+              <button ref={addButton} onClick={(event) => showResourceDialog('add', event.currentTarget)}
+                className="primary-button">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                {t('audio.addResource')}
+              </button>
+            </>
+          )}
         </div>
       </div>
-      <div className="audio-toolbar">
-        {/* Right filters */}
-        <div className="flex items-center gap-2">
+      <div ref={toolbarRef} className="audio-toolbar">
+        <div className="flex min-w-0 items-center gap-2">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -482,7 +582,10 @@ export function AudiosPage() {
               placeholder={t('design.searchAudio')}
               aria-label={t('design.searchAudio')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => {
+                setSearchQuery(event.target.value)
+                changePage(1)
+              }}
               className="glass-field h-9 w-48 rounded-lg border pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
             />
           </div>
@@ -491,8 +594,11 @@ export function AudiosPage() {
           <Select
             label={t('design.filterCategory')}
             value={selectedCategory}
-            onValueChange={setSelectedCategory}
-            options={[{ value: 'all', label: t('audio.allCategories') }, ...categories.map(category => ({ value: category, label: category }))]}
+            onValueChange={(category) => {
+              setSelectedCategory(category)
+              changePage(1)
+            }}
+            options={[{ value: '', label: t('audio.allCategories') }, ...categories.map(category => ({ value: category, label: category }))]}
           />
 
           {/* Sort */}
@@ -503,6 +609,7 @@ export function AudiosPage() {
               const [field, order] = value.split('-')
               setSortField(field as SortField)
               setSortOrder(order as SortOrder)
+              changePage(1)
             }}
             options={[
               { value: 'name-asc', label: t('audio.sortNameAsc') },
@@ -514,10 +621,33 @@ export function AudiosPage() {
             ]}
           />
         </div>
+        {showPagination && (
+          <nav className="audio-pagination" aria-label={t('audio.pagination')}>
+            <button
+              className="secondary-button"
+              disabled={currentPage <= 1}
+              onClick={() => changePage(currentPage - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              {t('audio.previousPage')}
+            </button>
+            <span className="text-sm tabular-nums text-muted-foreground" aria-live="polite">
+              {t('audio.pageNumber', { page: currentPage, total: pageCount })}
+            </span>
+            <button
+              className={currentPage < pageCount ? 'primary-button' : 'secondary-button'}
+              disabled={currentPage >= pageCount}
+              onClick={() => changePage(currentPage + 1)}
+            >
+              {t('audio.nextPage')}
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </nav>
+        )}
       </div>
 
       {/* Table */}
-      {filteredAudios.length === 0 ? (
+      {!hasRows ? (
         /* Empty state */
         <div className="surface-panel library-empty flex-1">
           <div className="text-center">
@@ -529,8 +659,8 @@ export function AudiosPage() {
             </h3>
 
             <button
-              onClick={handleImport}
-              className="glass-primary mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+              onClick={(event) => showResourceDialog('add', event.currentTarget)}
+              className="primary-button mt-8"
             >
               <Plus className="h-4 w-4" />
               {t('audio.importAudio')}
@@ -539,22 +669,22 @@ export function AudiosPage() {
         </div>
       ) : (
         <div className="surface-panel audio-table">
-          <div className="overflow-auto h-full thin-scrollbar">
-            <table className="w-full min-w-[600px]">
+          <div ref={tableViewport} className="h-full overflow-x-auto overflow-y-hidden thin-scrollbar">
+            <table className="w-full min-w-[600px] table-fixed whitespace-nowrap">
               <thead>
                 <tr className="border-b border-border/50 bg-muted/30">
-                  <th className="w-10 p-3">
-                    <input
-                      type="checkbox"
-                      aria-label={t('design.selectAllAudio')}
-                      checked={
-                        selectedIds.size === filteredAudios.length &&
-                        filteredAudios.length > 0
-                      }
-                      onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-input"
-                    />
-                  </th>
+                  {isManaging && (
+                    <th className="w-[60px] p-3">
+                      <input
+                        type="checkbox"
+                        aria-label={t('design.selectAllAudio')}
+                        checked={allVisibleSelected}
+                        disabled={deleting}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-input"
+                      />
+                    </th>
+                  )}
                   <th className="p-3 text-left">
                     <button
                       onClick={() => toggleSort('name')}
@@ -564,10 +694,10 @@ export function AudiosPage() {
                       <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="p-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="w-[22%] p-3 text-left text-sm font-medium text-muted-foreground">
                     {t('audio.columnCategory')}
                   </th>
-                  <th className="p-3 text-left">
+                  <th className="w-[10rem] p-3 text-left">
                     <button
                       onClick={() => toggleSort('createdAt')}
                       className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -576,13 +706,13 @@ export function AudiosPage() {
                       <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="p-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="w-[112px] p-3 text-left text-sm font-medium text-muted-foreground">
                     {t('audio.columnActions')}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredAudios.map((audio) => (
+                {visibleAudios.map((audio) => (
                   <tr
                     key={audio.id}
                     className={cn(
@@ -590,45 +720,42 @@ export function AudiosPage() {
                       selectedIds.has(audio.id) && 'bg-primary/5'
                     )}
                   >
-                    <td className="p-3">
-                      <input
-                        type="checkbox"
-                        aria-label={`${t('design.selectAudio')}: ${audio.name}`}
-                        checked={selectedIds.has(audio.id)}
-                        onChange={() => toggleSelect(audio.id)}
-                        className="h-4 w-4 rounded border-input"
-                      />
-                    </td>
+                    {isManaging && (
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          aria-label={`${t('design.selectAudio')}: ${audio.name}`}
+                          checked={selectedIds.has(audio.id)}
+                          disabled={deleting}
+                          onChange={() => toggleSelect(audio.id)}
+                          className="h-4 w-4 rounded border-input"
+                        />
+                      </td>
+                    )}
                     <td className="p-3">
                       <NavLink
                         to={`/audios/${audio.id}`}
-                        className="font-medium text-foreground hover:text-primary-ink hover:underline"
+                        title={audio.name}
+                        className="block truncate font-medium text-foreground hover:text-primary-ink hover:underline"
                       >
                         {audio.name}
                       </NavLink>
                     </td>
-                    <td className="p-3 text-sm text-muted-foreground">
+                    <td className="truncate p-3 text-sm text-muted-foreground" title={audio.category || undefined}>
                       {audio.category || '-'}
                     </td>
-                    <td className="p-3 text-sm text-muted-foreground tabular-nums">
+                    <td className="truncate p-3 text-sm text-muted-foreground tabular-nums">
                       {formatDate(audio.createdAt)}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1">
                         <button
                           className="audio-category-action secondary-button"
-                          aria-label={`${t('audio.editCategory')}: ${audio.name}`}
-                          title={t('audio.editCategory')}
-                          onClick={() => editCategory([audio.id])}
+                          aria-label={`${t('audio.editResource')}: ${audio.name}`}
+                          title={t('audio.editResource')}
+                          onClick={(event) => showResourceDialog(audio, event.currentTarget)}
                         >
-                          <FolderEdit className="h-4 w-4" />
-                        </button>
-                        <button
-                          aria-label={`${t('common.delete')}: ${audio.name}`}
-                          onClick={(e) => handleDelete(audio.id, e)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
                         </button>
                       </div>
                     </td>

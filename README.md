@@ -17,16 +17,14 @@ UltraEnglish 是一款在本机生成英语学习素材、练听力跟读和单�
 
 <table>
   <tr>
-    <td width="50%" align="center"><a href="docs/screenshots/desktop-home.png"><img src="docs/screenshots/desktop-home.png" alt="首页界面"></a><br>首页</td>
-    <td width="50%" align="center"><a href="docs/screenshots/audio-generation.png"><img src="docs/screenshots/audio-generation.png" alt="生成音频界面"></a><br>生成音频</td>
+    <td width="33%" align="center"><a href="docs/screenshots/desktop-home.png"><img src="docs/screenshots/desktop-home.png" alt="首页界面"></a><br>首页</td>
+    <td width="33%" align="center"><a href="docs/screenshots/audio-generation.png"><img src="docs/screenshots/audio-generation.png" alt="生成音频界面"></a><br>生成音频</td>
+    <td width="33%" align="center"><a href="docs/screenshots/audio-subtitles.png"><img src="docs/screenshots/audio-subtitles.png" alt="时间轴字幕界面"></a><br>时间轴字幕</td>
   </tr>
   <tr>
-    <td width="50%" align="center"><a href="docs/screenshots/audio-subtitles.png"><img src="docs/screenshots/audio-subtitles.png" alt="时间轴字幕界面"></a><br>时间轴字幕</td>
-    <td width="50%" align="center"><a href="docs/screenshots/audio-study.png"><img src="docs/screenshots/audio-study.png" alt="选段跟读界面"></a><br>选段跟读</td>
-  </tr>
-  <tr>
-    <td width="50%" align="center"><a href="docs/screenshots/vocabulary-library.png"><img src="docs/screenshots/vocabulary-library.png" alt="词书界面"></a><br>词书</td>
-    <td width="50%" align="center"><a href="docs/screenshots/spelling-practice.png"><img src="docs/screenshots/spelling-practice.png" alt="拼写练习界面"></a><br>拼写练习</td>
+      <td width="33%" align="center"><a href="docs/screenshots/audio-study.png"><img src="docs/screenshots/audio-study.png" alt="选段跟读界面"></a><br>选段跟读</td>
+    <td width="33%" align="center"><a href="docs/screenshots/vocabulary-library.png"><img src="docs/screenshots/vocabulary-library.png" alt="词书界面"></a><br>词书</td>
+    <td width="33%" align="center"><a href="docs/screenshots/spelling-practice.png"><img src="docs/screenshots/spelling-practice.png" alt="拼写练习界面"></a><br>拼写练习</td>
   </tr>
 </table>
 

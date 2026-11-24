@@ -66,11 +66,6 @@ export function installAppMenu(getMainWindow: () => BrowserWindow | null): void 
           accelerator: 'CmdOrCtrl+1',
           click: command('home')
         },
-        {
-          label: label('切换侧边栏', 'Toggle Sidebar'),
-          accelerator: 'CmdOrCtrl+Shift+L',
-          click: command('toggle-sidebar')
-        },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },

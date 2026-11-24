@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Palette, Type as TypeIcon, Settings2, Volume2, Monitor } from 'lucide-react'
-import { useSettingsStore } from '@renderer/stores/settings-store'
+import { Check, Minus, Monitor, Palette, Plus, RotateCcw, Settings2, Type as TypeIcon, Volume2 } from 'lucide-react'
+import { defaultSettings, useSettingsStore } from '@renderer/stores/settings-store'
 import { cn } from '@renderer/lib/utils'
 import { MAX_WORD_REPEAT } from '@renderer/lib/vocabulary-repeat'
-import { WORD_FONT_OPTIONS as wordFontOptions } from '@renderer/lib/vocabulary-typography'
+import { isHexColor, WORD_FONT_OPTIONS as wordFontOptions } from '@renderer/lib/vocabulary-typography'
 import { Select } from '@renderer/components/ui/select'
 
 const phoneticOptions = [
@@ -27,31 +27,121 @@ function FontSizeControl({ labelKey, value, min, max, onChange }: {
   onChange: (value: number) => void
 }) {
   const { t } = useTranslation()
+  const id = useId()
+  const label = t(labelKey)
   const [draft, setDraft] = useState(String(value))
   useEffect(() => setDraft(String(value)), [value])
+  const clampSize = (size: number) => Math.max(min, Math.min(max, Math.round(size)))
   const commit = () => {
     const parsed = Number(draft)
-    const next = draft.trim() && Number.isFinite(parsed) ? Math.max(min, Math.min(max, Math.round(parsed))) : value
+    const next = draft.trim() && Number.isFinite(parsed) ? clampSize(parsed) : value
     setDraft(String(next))
     if (next !== value) onChange(next)
   }
   return (
-    <label className="flex items-center justify-between gap-3">
-      <span className="text-sm font-medium">{t(labelKey)}</span>
-      <span className="flex shrink-0 items-center gap-2">
-        <input type="number" min={min} max={max} step={1} aria-label={t(labelKey)} value={draft}
-          className="glass-field w-20 rounded-lg border px-2 py-2 text-center text-sm tabular-nums"
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <label htmlFor={id} className="text-sm font-medium">{label}</label>
+      <div className="size-stepper" role="group" aria-label={label}>
+        <button
+          type="button"
+          className="spelling-size-button text-control"
+          aria-label={t('settings.vocabulary.decreaseSize', { label })}
+          disabled={value <= min}
+          onClick={() => onChange(clampSize(value - 1))}
+        >
+          <Minus size={16} aria-hidden="true" />
+        </button>
+        <input
+          id={id}
+          type="number"
+          min={min}
+          max={max}
+          step={1}
+          value={draft}
+          className="spelling-size-input text-center text-sm tabular-nums"
           onChange={event => {
             setDraft(event.target.value)
             const next = Number(event.target.value)
             if (Number.isInteger(next) && next >= min && next <= max) onChange(next)
           }}
           onBlur={commit}
-          onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); commit(); event.currentTarget.blur() } }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              event.currentTarget.blur()
+            }
+          }}
         />
-        <span className="text-xs text-muted-foreground">px</span>
-      </span>
-    </label>
+        <span className="text-xs text-muted-foreground" aria-hidden="true">px</span>
+        <button
+          type="button"
+          className="spelling-size-button text-control"
+          aria-label={t('settings.vocabulary.increaseSize', { label })}
+          disabled={value >= max}
+          onClick={() => onChange(clampSize(value + 1))}
+        >
+          <Plus size={16} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ColorControl({ label, value, defaultValue, onChange }: {
+  label: string
+  value: string
+  defaultValue: string
+  onChange: (value: string) => void
+}) {
+  const { t } = useTranslation()
+  const id = useId()
+  const [draft, setDraft] = useState(value)
+  useEffect(() => setDraft(value), [value])
+  const resetLabel = t('settings.vocabulary.resetColor', { label })
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/30 p-3">
+      <label htmlFor={id} className="text-sm font-medium">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="text"
+          value={draft}
+          placeholder={defaultValue}
+          spellCheck={false}
+          onChange={(event) => {
+            const next = event.target.value
+            setDraft(next)
+            if (CSS.supports('color', next)) onChange(next)
+          }}
+          onBlur={() => setDraft(value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') event.currentTarget.blur()
+          }}
+          className="glass-field h-8 w-28 rounded-md border px-2 text-xs font-mono"
+        />
+        <input
+          type="color"
+          aria-label={label}
+          value={isHexColor(value) ? value : defaultValue}
+          onChange={(event) => onChange(event.target.value)}
+          className="glass-field h-8 w-8 cursor-pointer rounded-md border p-0.5"
+        />
+        <button
+          type="button"
+          aria-label={resetLabel}
+          title={resetLabel}
+          disabled={value === defaultValue && draft === defaultValue}
+          onClick={() => {
+            setDraft(defaultValue)
+            onChange(defaultValue)
+          }}
+          className="text-control inline-grid h-8 w-8 place-items-center enabled:cursor-pointer"
+        >
+          <RotateCcw size={15} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -128,6 +218,168 @@ export function VocabularySettings() {
 
   return (
     <div className="space-y-8">
+      {/* Display Section */}
+      <div className="space-y-4">
+        <div className="settings-group-heading flex items-center gap-2 border-b border-border/40 pb-2">
+          <Monitor className="h-5 w-5 text-primary-ink" />
+          <h3 className="text-lg font-semibold">{t('settings.vocabulary.display', 'Display Settings')}</h3>
+        </div>
+
+        <div className="settings-panel settings-list grid gap-4 md:grid-cols-2">
+          {/* Show Translation */}
+          <div className="settings-row flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 shadow-sm">
+            <div>
+              <label className="text-sm font-medium">{t('settings.vocabulary.showTranslation')}</label>
+
+            </div>
+            <Toggle
+              label={t('settings.vocabulary.showTranslation')}
+              checked={vocabulary.showTranslation}
+              onChange={(checked) =>
+                updateVocabularySettings({
+                  showTranslation: checked,
+                  autoShowTranslationOnInput: checked ? false : vocabulary.autoShowTranslationOnInput
+                })
+              }
+            />
+          </div>
+
+          {/* Auto Show Translation */}
+          <div className="settings-row flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 shadow-sm">
+            <div>
+              <label className="text-sm font-medium">
+                {t('settings.vocabulary.autoShowTranslationOnInput')}
+              </label>
+
+            </div>
+            <Toggle
+              label={t('settings.vocabulary.autoShowTranslationOnInput')}
+              checked={vocabulary.autoShowTranslationOnInput}
+              onChange={(checked) =>
+                updateVocabularySettings({
+                  autoShowTranslationOnInput: checked,
+                  showTranslation: checked ? false : vocabulary.showTranslation
+                })
+              }
+            />
+          </div>
+
+          {/* One place for spelling typography, shared by fill and dictation. */}
+          <section className="settings-row spelling-font-settings flex flex-col gap-4 rounded-xl border border-border/50 bg-card p-4 md:col-span-2" aria-label={t('settings.vocabulary.spellingFont')}>
+            <h4 className="text-sm font-semibold">{t('settings.vocabulary.spellingFont')}</h4>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-sm font-medium">{t('settings.vocabulary.wordFont')}</span>
+              <Select
+                label={t('settings.vocabulary.wordFont')}
+                className="w-52"
+                value={resolvedWordFont}
+                onValueChange={(wordFontFamily) => void updateVocabularySettings({ wordFontFamily })}
+                options={wordFontOptions.map(({ value, labelKey }) => ({ value, label: t(labelKey) }))}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-sm font-medium">{t('settings.vocabulary.wordFontBold')}</span>
+              <Select
+                label={t('settings.vocabulary.wordFontBold')}
+                className="w-52"
+                value={String(vocabulary.wordFontWeight)}
+                onValueChange={(value) => void updateVocabularySettings({ wordFontWeight: Number(value) as 400 | 500 | 600 | 700 })}
+                options={[
+                  { value: '400', label: t('settings.audio.regular') },
+                  { value: '500', label: '500' },
+                  { value: '600', label: '600' },
+                  { value: '700', label: t('settings.audio.bold') }
+                ]}
+              />
+            </div>
+            <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <FontSizeControl
+                labelKey="settings.vocabulary.wordFontSize"
+                value={vocabulary.wordFontSize}
+                min={24}
+                max={72}
+                onChange={(value) => updateVocabularySettings({ wordFontSize: value })}
+              />
+              <FontSizeControl
+                labelKey="settings.vocabulary.phoneticFontSize"
+                value={vocabulary.phoneticFontSize}
+                min={12}
+                max={32}
+                onChange={(value) => updateVocabularySettings({ phoneticFontSize: value })}
+              />
+              <FontSizeControl
+                labelKey="settings.vocabulary.definitionFontSize"
+                value={vocabulary.definitionFontSize}
+                min={12}
+                max={72}
+                onChange={(value) => updateVocabularySettings({ definitionFontSize: value })}
+              />
+              <FontSizeControl
+                labelKey="settings.vocabulary.examplesFontSize"
+                value={vocabulary.examplesFontSize}
+                min={12}
+                max={72}
+                onChange={(value) => updateVocabularySettings({ examplesFontSize: value })}
+              />
+            </div>
+          </section>
+          {/* Typography Card */}
+          <div className="settings-row rounded-xl border border-border/50 bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 text-muted-foreground">
+              <TypeIcon className="h-4 w-4" />
+              <span className="text-xs font-medium uppercase tracking-wider">{t('settings.vocabulary.typography')}</span>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
+                <span className="text-sm font-medium">{t('settings.vocabulary.highlightKeywordsInExamples')}</span>
+                <Toggle
+                  label={t('settings.vocabulary.highlightKeywordsInExamples')}
+                  checked={vocabulary.highlightKeywordsInExamples}
+                  onChange={(checked) => updateVocabularySettings({ highlightKeywordsInExamples: checked })}
+                />
+              </div>
+
+
+              <FontWeightControl
+                labelKey="settings.vocabulary.definitionFontBold"
+                value={vocabulary.definitionFontWeight}
+                onChange={(value) => updateVocabularySettings({ definitionFontWeight: value })}
+              />
+
+              <FontWeightControl
+                labelKey="settings.vocabulary.examplesFontBold"
+                value={vocabulary.examplesFontWeight}
+                onChange={(value) => updateVocabularySettings({ examplesFontWeight: value })}
+              />
+            </div>
+          </div>
+
+          {/* Colors Card */}
+          <div className="settings-row rounded-xl border border-border/50 bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 text-muted-foreground">
+              <Palette className="h-4 w-4" />
+              <span className="text-xs font-medium uppercase tracking-wider">{t('settings.vocabulary.colors')}</span>
+            </div>
+
+            <div className="space-y-3">
+              <ColorControl
+                label={t('settings.vocabulary.correctColor')}
+                value={vocabulary.correctColor}
+                defaultValue={defaultSettings.vocabulary.correctColor}
+                onChange={(correctColor) => void updateVocabularySettings({ correctColor })}
+              />
+              <ColorControl
+                label={t('settings.vocabulary.wrongColor')}
+                value={vocabulary.wrongColor}
+                defaultValue={defaultSettings.vocabulary.wrongColor}
+                onChange={(wrongColor) => void updateVocabularySettings({ wrongColor })}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Behavior Section */}
       <div className="space-y-4">
         <div className="settings-group-heading flex items-center gap-2 border-b border-border/40 pb-2">
@@ -359,192 +611,6 @@ export function VocabularySettings() {
                   </button>
                 )
               })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Display Section */}
-      <div className="space-y-4">
-        <div className="settings-group-heading flex items-center gap-2 border-b border-border/40 pb-2">
-          <Monitor className="h-5 w-5 text-primary-ink" />
-          <h3 className="text-lg font-semibold">{t('settings.vocabulary.display', 'Display Settings')}</h3>
-        </div>
-
-        <div className="settings-panel settings-list grid gap-4 md:grid-cols-2">
-          {/* Show Translation */}
-          <div className="settings-row flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 shadow-sm">
-            <div>
-              <label className="text-sm font-medium">{t('settings.vocabulary.showTranslation')}</label>
-
-            </div>
-            <Toggle
-              label={t('settings.vocabulary.showTranslation')}
-              checked={vocabulary.showTranslation}
-              onChange={(checked) =>
-                updateVocabularySettings({
-                  showTranslation: checked,
-                  autoShowTranslationOnInput: checked ? false : vocabulary.autoShowTranslationOnInput
-                })
-              }
-            />
-          </div>
-
-          {/* Auto Show Translation */}
-          <div className="settings-row flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 shadow-sm">
-            <div>
-              <label className="text-sm font-medium">
-                {t('settings.vocabulary.autoShowTranslationOnInput')}
-              </label>
-
-            </div>
-            <Toggle
-              label={t('settings.vocabulary.autoShowTranslationOnInput')}
-              checked={vocabulary.autoShowTranslationOnInput}
-              onChange={(checked) =>
-                updateVocabularySettings({
-                  autoShowTranslationOnInput: checked,
-                  showTranslation: checked ? false : vocabulary.showTranslation
-                })
-              }
-            />
-          </div>
-
-          {/* One place for spelling typography, shared by fill and dictation. */}
-          <section className="settings-row spelling-font-settings flex flex-col gap-4 rounded-xl border border-border/50 bg-card p-4 md:col-span-2" aria-label={t('settings.vocabulary.spellingFont')}>
-            <h4 className="text-sm font-semibold">{t('settings.vocabulary.spellingFont')}</h4>
-            <label className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-medium">{t('settings.vocabulary.wordFont')}</span>
-              <Select
-                label={t('settings.vocabulary.wordFont')}
-                value={resolvedWordFont}
-                onValueChange={(wordFontFamily) => void updateVocabularySettings({ wordFontFamily })}
-                options={wordFontOptions.map(({ value, labelKey }) => ({ value, label: t(labelKey) }))}
-              />
-            </label>
-            <label className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/30 p-3">
-              <span className="text-sm font-medium">{t('settings.vocabulary.wordFontBold')}</span>
-              <Select
-                label={t('settings.vocabulary.wordFontBold')}
-                value={String(vocabulary.wordFontWeight)}
-                onValueChange={(value) => void updateVocabularySettings({ wordFontWeight: Number(value) as 400 | 500 | 600 | 700 })}
-                options={[
-                  { value: '400', label: t('settings.audio.regular') },
-                  { value: '500', label: '500' },
-                  { value: '600', label: '600' },
-                  { value: '700', label: t('settings.audio.bold') }
-                ]}
-              />
-            </label>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <FontSizeControl
-                labelKey="settings.vocabulary.wordFontSize"
-                value={vocabulary.wordFontSize}
-                min={24}
-                max={72}
-                onChange={(value) => updateVocabularySettings({ wordFontSize: value })}
-              />
-              <FontSizeControl
-                labelKey="settings.vocabulary.phoneticFontSize"
-                value={vocabulary.phoneticFontSize}
-                min={12}
-                max={32}
-                onChange={(value) => updateVocabularySettings({ phoneticFontSize: value })}
-              />
-              <FontSizeControl
-                labelKey="settings.vocabulary.definitionFontSize"
-                value={vocabulary.definitionFontSize}
-                min={12}
-                max={72}
-                onChange={(value) => updateVocabularySettings({ definitionFontSize: value })}
-              />
-              <FontSizeControl
-                labelKey="settings.vocabulary.examplesFontSize"
-                value={vocabulary.examplesFontSize}
-                min={12}
-                max={72}
-                onChange={(value) => updateVocabularySettings({ examplesFontSize: value })}
-              />
-            </div>
-          </section>
-        </div>
-      </div>
-
-      {/* Visual Settings - Redesigned */}
-      <div className="space-y-4">
-        <div className="settings-group-heading flex items-center gap-2 border-b border-border/40 pb-2">
-          <Palette className="h-5 w-5 text-primary-ink" />
-          <h3 className="text-lg font-semibold">{t('settings.vocabulary.visualStyle')}</h3>
-        </div>
-
-        <div className="settings-panel settings-list grid gap-6 md:grid-cols-2">
-          {/* Typography Card */}
-          <div className="settings-row rounded-xl border border-border/50 bg-card p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 text-muted-foreground">
-              <TypeIcon className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">{t('settings.vocabulary.visualStyle')} - Typography</span>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
-                <span className="text-sm font-medium">{t('settings.vocabulary.highlightKeywordsInExamples')}</span>
-                <Toggle
-                  label={t('settings.vocabulary.highlightKeywordsInExamples')}
-                  checked={vocabulary.highlightKeywordsInExamples}
-                  onChange={(checked) => updateVocabularySettings({ highlightKeywordsInExamples: checked })}
-                />
-              </div>
-
-
-              <FontWeightControl
-                labelKey="settings.vocabulary.definitionFontBold"
-                value={vocabulary.definitionFontWeight}
-                onChange={(value) => updateVocabularySettings({ definitionFontWeight: value })}
-              />
-
-              <FontWeightControl
-                labelKey="settings.vocabulary.examplesFontBold"
-                value={vocabulary.examplesFontWeight}
-                onChange={(value) => updateVocabularySettings({ examplesFontWeight: value })}
-              />
-            </div>
-          </div>
-
-          {/* Colors Card */}
-          <div className="settings-row rounded-xl border border-border/50 bg-card p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 text-muted-foreground">
-              <Palette className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">{t('settings.vocabulary.visualStyle')} - Colors</span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { label: t('settings.vocabulary.correctColor'), key: 'correctColor' as const },
-                { label: t('settings.vocabulary.wrongColor'), key: 'wrongColor' as const },
-              ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
-                  <label htmlFor={`${item.key}-hex`} className="text-sm font-medium text-foreground">{item.label}</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      id={`${item.key}-hex`}
-                      value={vocabulary[item.key] as string}
-                      onChange={(e) => updateVocabularySettings({ [item.key]: e.target.value })}
-                      className="glass-field h-8 w-24 rounded-md border px-2 text-xs font-mono uppercase shadow-sm focus:outline-none focus-visible:ring-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-                      placeholder="#000000"
-                    />
-                    <div className="relative h-8 w-8 overflow-hidden rounded-md border border-border shadow-sm transition-transform hover:scale-105">
-                      <input
-                        type="color"
-                        aria-label={item.label}
-                        value={vocabulary[item.key] as string}
-                        onChange={(e) => updateVocabularySettings({ [item.key]: e.target.value })}
-                        className="absolute -left-1/2 -top-1/2 h-[200%] w-[200%] cursor-pointer border-0 p-0"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

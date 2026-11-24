@@ -13,18 +13,18 @@ import { useSettingsStore } from '@renderer/stores/settings-store'
 
 const items = [
   { title: 'shell.overview', href: '/', icon: House },
-  { title: 'audioGeneration.title', href: '/audio-generation', icon: AudioLines },
+  { title: 'shell.generation', href: '/audio-generation', icon: AudioLines },
   { title: 'shell.audios', href: '/audios', icon: Headphones },
   { title: 'shell.vocabulary', href: '/vocabulary', icon: BookOpen }
 ]
 
-export function Sidebar({ collapsed }: { collapsed: boolean }) {
+export function Sidebar() {
   const { t, i18n } = useTranslation()
   const sidebarRef = useRef<HTMLElement>(null)
   const fontScale = useSettingsStore((state) => state.settings.basic.fontScale)
   useLayoutEffect(() => {
     const aside = sidebarRef.current
-    if (!aside || collapsed) return
+    if (!aside) return
     const measure = () => {
       let width = 168
       aside
@@ -74,7 +74,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
       observer.disconnect()
       resizeObserver.disconnect()
     }
-  }, [collapsed, i18n.language, fontScale])
+  }, [i18n.language, fontScale])
   const openSettings = useSettingsStore((state) => state.setOpen)
 
   return (
@@ -86,8 +86,11 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
     >
       <div className="sidebar-window-space drag-region" aria-hidden="true" />
       <div className="sidebar-brand drag-region" title="UltraEnglish">
-        <img className="sidebar-brand-icon" src={logo} alt={collapsed ? 'UltraEnglish' : ''} />
-        {!collapsed && <div className="sidebar-brand-copy"><strong>UltraEnglish</strong><span>{t('shell.studyWorkspace')}</span></div>}
+        <img className="sidebar-brand-icon" src={logo} alt="" />
+        <div className="sidebar-brand-copy">
+          <strong>UltraEnglish</strong>
+          <span>{t('shell.studyWorkspace')}</span>
+        </div>
       </div>
       <nav className="sidebar-navigation" aria-label={t('shell.library')}>
         {items.map((item) => (
@@ -102,11 +105,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
             }
           >
             <item.icon size={19} strokeWidth={1.7} aria-hidden="true" />
-            {!collapsed && (
-              <>
-                <span>{t(item.title)}</span>
-              </>
-            )}
+            <span>{t(item.title)}</span>
           </NavLink>
         ))}
       </nav>
@@ -119,11 +118,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
           aria-label={t('nav.settings')}
         >
           <Settings size={19} strokeWidth={1.7} aria-hidden="true" />
-          {!collapsed && (
-            <>
-              <span>{t('nav.settings')}</span>
-            </>
-          )}
+          <span>{t('nav.settings')}</span>
         </button>
       </div>
     </aside>

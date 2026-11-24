@@ -181,7 +181,7 @@ export function AudioGenerationPage() {
     <div className="content-container audio-generation-page">
       <header className="library-heading drag-region">
         <div className="page-heading">
-          <h1>{t('audioGeneration.title')}</h1>
+          <h1>{t('shell.generation')}</h1>
         </div>
       </header>
       <form className="audio-generation-form" onSubmit={(event) => {

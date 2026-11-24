@@ -126,7 +126,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFolder: (folderPath: string) => ipcRenderer.invoke('open-folder', { folderPath }),
   saveTextFile: (data: { content: string; suggestedName: string; filters?: Electron.FileFilter[] }) =>
     ipcRenderer.invoke('save-text-file', data),
-  saveTextFileToDownloads: (data: { content: string; suggestedName: string }) =>
+  saveTextFileToDownloads: (data: { content: string; suggestedName: string; showInFolder?: boolean }) =>
     ipcRenderer.invoke('save-text-file-to-downloads', data),
 
   // Subtitle
@@ -256,6 +256,7 @@ export interface ElectronAPI {
   saveTextFileToDownloads: (data: {
     content: string
     suggestedName: string
+    showInFolder?: boolean
   }) => Promise<{ success: boolean; filePath?: string; error?: string }>
 
   // Subtitle

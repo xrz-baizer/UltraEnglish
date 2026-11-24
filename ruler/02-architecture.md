@@ -84,7 +84,7 @@ React 页面 / Zustand
 | `?window=import-vocabulary` | `pages/vocabulary/import-window.tsx` | 独立导入窗口，不经过主布局 |
 | 应用级设置 | `components/settings/settings-modal.tsx` | 设置导航及关于面板 |
 
-`Layout` 管理整体分栏、菜单命令订阅和侧边栏展开状态。`Sidebar` 管理顶层目的地与账户/设置入口。`Layout` 在主面板顶部保留原生拖拽区域，页面标题和控件由各页面承载。
+`Layout` 管理整体分栏和菜单命令订阅。`Sidebar` 管理常驻的顶层导航和设置入口。侧栏顶部与各页面的拖动区域承载原生窗口拖拽，主内容区从窗口顶部开始布局。
 
 设置中的关于面板通过 `getAppVersion` 读取主进程的 `app.getVersion()`。`shared/app-links.ts` 集中定义官网、GitHub 仓库和 Issues 地址，主窗口将这三个链接交给系统浏览器打开。
 

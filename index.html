@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="UltraEnglish 支持英文文本生成音频、音频转文字、选段跟读和单词拼写练习。" data-en-content="UltraEnglish turns English text into audio, transcribes recordings, and supports phrase shadowing and spelling practice.">
+  <meta name="description" content="UltraEnglish 是一款英语学习桌面应用，支持文字转音频、音频转字幕、选段跟读和自定义单词本拼写练习。" data-en-content="UltraEnglish is a desktop app for English learners. Turn text into audio, transcribe recordings, shadow short phrases, and practise spelling with custom word books.">
   <link rel="icon" type="image/png" sizes="16x16" href="home/icon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="home/icon-32.png">
   <link rel="apple-touch-icon" sizes="128x128" href="home/icon-128.png">
@@ -33,7 +33,7 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <h1 id="hero-title"><span class="hero-question"><span class="hero-context"><svg aria-hidden="true" width="16" height="18" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9v6M7 5v14M11 2v20M15 6v12M19 10v4"/></svg><span data-en="English">英语跟读</span></span><span class="hero-pain" data-en="Can't keep up?">长句跟不上？</span></span></h1>
-      <p class="lede" data-en="Turn text into audio and recordings into subtitles. Loop a short phrase for shadowing, or practise spelling with a word book.">把英文文本生成音频，把录音转成字幕。选中一小段反复跟读，也可以打开词书练拼写。</p>
+      <p class="lede" data-en="Turn English text into audio. Transcribe recordings, loop short phrases for shadowing, or practise spelling with your own word book.">把英文文本转成音频。导入录音生成字幕、选段跟读，或用自己的单词本练拼写。</p>
       <div class="hero-actions">
         <a class="button" href="#download"><span data-en="Download Now">立即下载</span><span aria-hidden="true">↓</span></a>
         <a class="text-link" href="https://github.com/xrz-baizer/UltraEnglish/issues/new" target="_blank" rel="noopener noreferrer"><span data-en="Submit feedback">在线提交建议</span><span aria-hidden="true">↗</span></a>
@@ -84,12 +84,12 @@
               <div class="tts-simple-footer">
                 <button type="button" class="tts-generate-btn" id="tts-generate-btn">
                   <svg aria-hidden="true" width="14" height="14" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9v6M7 5v14M11 2v20M15 6v12M19 10v4"/></svg>
-                  <span id="tts-generate-label" data-en="Generate audio">生成音频</span>
+                  <span id="tts-generate-label" data-en="Generate sample">生成示例</span>
                 </button>
                 <div class="tts-mini-wave" id="tts-mini-wave" aria-hidden="true">
                   <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
                 </div>
-                <span class="tts-simple-status" id="tts-result-status" data-en="MP3 · Subtitles synced">MP3 · 字幕同步入库</span>
+                <span class="tts-simple-status" id="tts-result-status" data-en="MP3 example">MP3 示例</span>
               </div>
             </div>
           </div>
@@ -106,9 +106,9 @@
           </div>
         </div>
         <div class="mode-dock glass" role="tablist" aria-label="切换学习方式" data-en-label="Choose a learning mode">
-          <button id="tab-audio" type="button" role="tab" aria-selected="true" aria-controls="panel-audio" tabindex="0"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 13H2v7h4v-7zm16 0h2v7h-4v-7z"/></svg><span data-en="Shadowing">跟读训练</span></button>
-          <button id="tab-tts" type="button" role="tab" aria-selected="false" aria-controls="panel-tts" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 9v6M7 5v14M11 2v20M15 6v12M19 10v4"/></svg><span data-en="Text to speech">生成音频</span></button>
-          <button id="tab-typing" type="button" role="tab" aria-selected="false" aria-controls="panel-typing" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1M7 15h10"/></svg><span data-en="Spelling practice">拼写练习</span></button>
+          <button id="tab-audio" type="button" role="tab" aria-selected="true" aria-controls="panel-audio" tabindex="0"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 13H2v7h4v-7zm16 0h2v7h-4v-7z"/></svg><span data-en="Audio Library">音频资料库</span></button>
+          <button id="tab-tts" type="button" role="tab" aria-selected="false" aria-controls="panel-tts" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 9v6M7 5v14M11 2v20M15 6v12M19 10v4"/></svg><span data-en="Text to Audio">文字转音频</span></button>
+          <button id="tab-typing" type="button" role="tab" aria-selected="false" aria-controls="panel-typing" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1M7 15h10"/></svg><span data-en="Vocabulary Library">词汇资料库</span></button>
         </div>
       </div>
     </div>
@@ -123,7 +123,7 @@
           <div class="app-window story-stage-window">
             <div class="toolbar">
               <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-              <span class="window-title" id="story-stage-title" data-en="Text to audio">文本生成音频</span>
+              <span class="window-title" id="story-stage-title">文字转音频</span>
             </div>
             <div class="story-stage-body">
               <div class="story-stage-pane" data-story-pane="0">
@@ -172,9 +172,9 @@
           <article class="feature is-current" data-story-step="0" tabindex="0" role="listitem">
             <div class="feature-head">
               <span class="feature-step-num">01</span>
-              <h3 data-en="Text to audio">文本生成音频</h3>
+              <h3 data-en="Text to Audio">文字转音频</h3>
             </div>
-            <p data-en="Turn English text into MP3 or WAV audio with synced subtitles.">粘贴英文句子，一键生成带字幕的音频。</p>
+            <p data-en="Turn English text into MP3 or WAV. Choose a voice and set the speaking speed.">输入英文文本生成 MP3 或 WAV，可选音色和语速。</p>
           </article>
 
           <article class="feature" data-story-step="1" tabindex="0" role="listitem">
@@ -182,7 +182,7 @@
               <span class="feature-step-num">02</span>
               <h3 data-en="Audio to text">音频转文字</h3>
             </div>
-            <p data-en="Generate timestamped subtitles on-device with Whisper. Click any line to jump.">本地 Whisper 识别时间轴字幕，点哪句跳哪句。</p>
+            <p data-en="Generate timestamped subtitles on-device in the Audio Library and jump to any line.">在音频资料库本地生成带时间戳的字幕，点击字幕即可跳转。</p>
           </article>
 
           <article class="feature" data-story-step="2" tabindex="0" role="listitem">
@@ -198,7 +198,7 @@
               <span class="feature-step-num">04</span>
               <h3 data-en="Spelling practice">单词拼写练习</h3>
             </div>
-            <p data-en="Practise spelling by chapter with built-in or custom word books.">打开内置或自定义词书，按章节接力练拼写。</p>
+            <p data-en="Practise spelling in the Vocabulary Library with built-in or custom word books. Preview and download a JSON template for imports.">在词汇资料库用内置或自定义单词本练拼写。导入窗口提供可预览和下载的 JSON 模板。</p>
           </article>
         </div>
       </div>
@@ -207,7 +207,7 @@
     <section class="showcase" id="themes" aria-labelledby="themes-title">
       <div class="showcase-heading">
         <h2 id="themes-title" data-en="A different look. The same focus.">换个主题，继续专注。</h2>
-        <p data-en="Light, dark or soft green. Your system theme works too.">浅色、深色、护眼，也能跟随系统。</p>
+        <p data-en="Choose light or dark mode, or follow your system setting.">可选浅色或深色，也可跟随系统。</p>
       </div>
       <div class="theme-fan" role="group" aria-label="三种主题界面" data-en-label="Three interface themes">
         <article class="app-window theme-window theme-card" data-preview-theme="dark" tabindex="0" aria-labelledby="theme-card-dark-title">
@@ -228,8 +228,8 @@
             <div class="practice-meter" aria-hidden="true"><span></span></div>
           </div>
         </article>
-        <article class="app-window theme-window theme-card" data-preview-theme="eye-protection" tabindex="0" aria-labelledby="theme-card-eye-protection-title">
-          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><h3 class="window-title" id="theme-card-eye-protection-title" data-en="Green · Audio">护眼 · 音频</h3></div>
+        <article class="app-window theme-window theme-card" data-preview-theme="system" tabindex="0" aria-labelledby="theme-card-system-title">
+          <div class="toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><h3 class="window-title" id="theme-card-system-title" data-en="System · Audio">跟随系统 · 音频</h3></div>
           <div class="theme-workspace mini-audio">
             <span class="preview-eyebrow" data-en="Phrase-by-phrase shadowing">片段跟读</span>
             <p class="mini-audio-sentence" lang="en"><span>Listen closely,</span><mark>then try again.</mark></p>
@@ -238,7 +238,7 @@
           </div>
         </article>
       </div>
-      <div class="fan-legend" aria-hidden="true"><span><i class="legend-dark"></i><span data-en="Overview">学习概览</span></span><span><i class="legend-light"></i><span data-en="Spelling">单词拼写</span></span><span><i class="legend-green"></i><span data-en="Audio">音频播放</span></span></div>
+      <div class="fan-legend" aria-hidden="true"><span><i class="legend-dark"></i><span data-en="Overview">学习概览</span></span><span><i class="legend-light"></i><span data-en="Spelling">单词拼写</span></span><span><i class="legend-system"></i><span data-en="Audio">音频播放</span></span></div>
     </section>
 
     <section class="showcase" id="personalize" aria-labelledby="personalize-title">
@@ -260,7 +260,6 @@
               <div class="setting-row"><label for="preview-font" data-en="Font">字体</label><select id="preview-font"><option value="system-ui" data-en="System">系统默认</option><option value="Georgia, serif">Georgia</option><option value="Arial, sans-serif">Arial</option></select></div>
               <div class="setting-row setting-slider"><label for="preview-size" data-en="Size">字号</label><input id="preview-size" type="range" min="24" max="44" value="36" step="1"><output id="preview-size-value" for="preview-size">36</output></div>
               <div class="setting-row"><label for="preview-bold" data-en="Bold text">加粗显示</label><span class="switch"><input id="preview-bold" type="checkbox"><span class="switch-track"></span></span></div>
-              <div class="setting-row"><span id="preview-color-label" data-en="Text color">文字颜色</span><div class="color-options" role="group" aria-labelledby="preview-color-label"><button type="button" class="color-choice" data-preview-color="#0066cc" aria-pressed="true" aria-label="蓝色" data-en-label="Blue"></button><button type="button" class="color-choice" data-preview-color="#287256" aria-pressed="false" aria-label="绿色" data-en-label="Green"></button><button type="button" class="color-choice" data-preview-color="#1d1d1f" aria-pressed="false" aria-label="黑色" data-en-label="Black"></button></div></div>
             </div>
             <div class="control-panel" id="personal-panel-practice" role="tabpanel" aria-labelledby="personal-tab-practice" tabindex="0" hidden>
               <h3 data-en="Practise at your own pace.">按自己的节奏来。</h3>
@@ -293,7 +292,7 @@
       <img class="download-app-icon" src="home/icon-128.png" width="128" height="128" alt="" loading="lazy" decoding="async">
       <h2 id="download-title" data-en="Download UltraEnglish">下载 UltraEnglish</h2>
       <div class="download-platforms">
-        <a class="button download-btn-mac" href="https://github.com/xrz-baizer/UltraEnglish/releases/download/v1.0.0/UltraEnglish.dmg">
+        <a class="button download-btn-mac" href="https://github.com/xrz-baizer/UltraEnglish/releases/latest/download/UltraEnglish.dmg">
           <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.96 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.08-.52 2.72-1.3Z"/></svg>
           <span data-en="Download for Mac">下载 Mac 版</span>
         </a>

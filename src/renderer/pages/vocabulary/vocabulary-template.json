@@ -1,0 +1,16 @@
+[
+  {
+    "name": "practice",
+    "trans": ["n. 练习", "v. 练习"],
+    "usphone": "ˈpræktɪs",
+    "ukphone": "ˈpræktɪs",
+    "examples": ["I practice speaking English every day."]
+  },
+  {
+    "name": "curious",
+    "trans": ["adj. 好奇的"],
+    "usphone": "ˈkjʊriəs",
+    "ukphone": "ˈkjʊəriəs",
+    "examples": ["She is curious about how languages change."]
+  }
+]

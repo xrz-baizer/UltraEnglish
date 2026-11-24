@@ -48,7 +48,7 @@ document.querySelectorAll('[data-tts-voice]').forEach((btn, idx) => {
     ttsCurrentVoice.dataset.en = enName;
     ttsCurrentVoice.textContent = text(zhName, enName);
     ttsSampleText.textContent = ttsSentences[idx] || ttsSentences[0];
-    ttsResultStatus.textContent = text('MP3 · 字幕同步入库', 'MP3 · Subtitles synced');
+    ttsResultStatus.textContent = text(ttsResultStatus.dataset.zh, ttsResultStatus.dataset.en);
   });
 });
 
@@ -56,10 +56,10 @@ ttsGenerateBtn.addEventListener('click', () => {
   clearTimeout(ttsPlayTimer);
   ttsWorkspace.classList.add('is-playing');
   ttsGenerateLabel.textContent = text('已生成', 'Generated');
-  ttsResultStatus.textContent = text('已生成 MP3 音频并同步字幕', 'MP3 generated · Subtitles synced');
+  ttsResultStatus.textContent = text('MP3 示例已就绪', 'MP3 sample ready');
   ttsPlayTimer = setTimeout(() => {
     ttsWorkspace.classList.remove('is-playing');
-    ttsGenerateLabel.textContent = text('生成音频', 'Generate audio');
+    ttsGenerateLabel.textContent = text(ttsGenerateLabel.dataset.zh, ttsGenerateLabel.dataset.en);
   }, 1600);
 });
 
@@ -196,14 +196,12 @@ window.addEventListener('resize', syncPreviewOrientation);
 syncPreviewOrientation();
 let previewMode = 'fill';
 let previewRepeats = 3;
-let previewColor = '#0066cc';
 function updatePersonalPreview() {
   const word = document.getElementById('live-word');
   const size = Number(document.getElementById('preview-size').value);
   word.style.fontFamily = document.getElementById('preview-font').value;
   word.style.fontSize = `${size}px`;
   word.style.fontWeight = document.getElementById('preview-bold').checked ? '700' : '400';
-  word.style.color = previewColor;
   const shuffled = document.getElementById('preview-random').checked;
   word.textContent = previewMode === 'dictation' ? '•••••••••' : shuffled ? 'practice' : 'curiosity';
   document.getElementById('live-meaning').textContent = shuffled
@@ -217,7 +215,7 @@ function updatePersonalPreview() {
 ['preview-font', 'preview-size', 'preview-bold', 'preview-random'].forEach(id => {
   document.getElementById(id).addEventListener('input', updatePersonalPreview);
 });
-[['data-preview-color', value => { previewColor = value; }], ['data-preview-mode', value => { previewMode = value; }], ['data-preview-repeats', value => { previewRepeats = Number(value); }]].forEach(([attribute, setValue]) => {
+[['data-preview-mode', value => { previewMode = value; }], ['data-preview-repeats', value => { previewRepeats = Number(value); }]].forEach(([attribute, setValue]) => {
   document.querySelectorAll(`[${attribute}]`).forEach(button => button.addEventListener('click', () => {
     document.querySelectorAll(`[${attribute}]`).forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     setValue(button.getAttribute(attribute));
@@ -257,12 +255,7 @@ const storyProgress = [...document.querySelectorAll('.story-progress i')];
 const storyPanes = [...document.querySelectorAll('[data-story-pane]')];
 const storyStageTitle = document.getElementById('story-stage-title');
 const storyStepCounter = document.getElementById('story-step-counter');
-const storyTitles = [
-  ['文本生成音频', 'Text to audio'],
-  ['音频转文字', 'Audio to text'],
-  ['选段跟读', 'Phrase shadowing'],
-  ['单词拼写练习', 'Spelling practice']
-];
+const storyHeadings = storySteps.map(step => step.querySelector('h3'));
 let activeStoryStep = 0;
 let manualStoryLockUntil = 0;
 
@@ -271,8 +264,8 @@ for (const preview of document.querySelectorAll('.story-wave')) {
 }
 
 function updateStoryStageTitle(index) {
-  const pair = storyTitles[index] || storyTitles[0];
-  if (storyStageTitle) storyStageTitle.textContent = text(pair[0], pair[1]);
+  const heading = storyHeadings[index];
+  if (storyStageTitle && heading) storyStageTitle.textContent = heading.textContent;
   if (storyStepCounter) storyStepCounter.textContent = `0${index + 1} / 0${storySteps.length}`;
 }
 

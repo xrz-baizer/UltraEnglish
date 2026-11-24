@@ -54,19 +54,19 @@ const HOME_FEATURES = [
   {
     to: '/audio-generation',
     illustration: <AudioIllustration icon={FileText} wave={GENERATION_WAVE} />,
-    title: 'audioGeneration.title',
+    title: 'shell.generation',
     description: 'home.generationDescription'
   },
   {
     to: '/audios',
     illustration: <AudioIllustration icon={Headphones} wave={SHADOWING_WAVE} />,
-    title: 'design.shadowingPractice',
+    title: 'shell.audios',
     description: 'home.shadowingDescription'
   },
   {
     to: '/vocabulary',
     illustration: <KeyboardIllustration />,
-    title: 'design.spellingPractice',
+    title: 'shell.vocabulary',
     description: 'home.spellingDescription'
   }
 ]
@@ -114,7 +114,11 @@ export function HomePage() {
             <div className="overview-feature-art">{illustration}</div>
             <div className="overview-feature-copy">
               <h2>{t(title)}</h2>
-              <p>{t(description)}</p>
+              <ul>
+                {(t(description, { returnObjects: true }) as string[]).map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
             </div>
             <ArrowRight className="overview-feature-arrow" size={19} aria-hidden="true" />
           </Link>

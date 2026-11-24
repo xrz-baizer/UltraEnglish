@@ -220,9 +220,6 @@
   height: 100dvh;
   overflow: hidden;
 }
-.app-shell[data-collapsed='true'] {
-  --sidebar-width: 92px;
-}
 .app-sidebar {
   display: flex;
   flex-direction: column;
@@ -251,7 +248,7 @@ html:not([data-platform='darwin']) .app-sidebar {
   flex-shrink: 0;
 }
 .sidebar-brand-icon { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
-.sidebar-brand-copy { min-width: 0; }
+.sidebar-brand-copy { min-width: 0; white-space: nowrap; }
 .brand-mark {
   display: grid;
   place-items: center;
@@ -382,15 +379,6 @@ html:not([data-platform='darwin']) .app-sidebar {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-[data-collapsed='true'] .sidebar-brand {
-  justify-content: center;
-  padding-inline: 0;
-}
-[data-collapsed='true'] .sidebar-link,
-[data-collapsed='true'] .sidebar-account {
-  justify-content: center;
-  padding-inline: 0;
 }
 .app-workspace {
   --toolbar-height: 44px;
@@ -889,7 +877,8 @@ html:not([data-platform='darwin']) .app-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: calc(100dvh - var(--toolbar-height));
+  height: 100dvh;
+  min-height: 0;
 }
 .audio-page .page-heading {
   margin-bottom: 0;
@@ -927,6 +916,30 @@ html:not([data-platform='darwin']) .app-sidebar {
 }
 .practice-workspace {
   background: var(--practice-fill);
+}
+.practice-pronounce {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.practice-pronounce:hover { color: hsl(var(--foreground)); }
+html[data-platform='darwin'] .vocabulary-import-window > header { padding-top: 32px; }
+@media (max-height: 450px) {
+  .vocabulary-import-window > header,
+  .vocabulary-import-window > footer { padding-block-end: 8px; }
+  .vocabulary-import-window > footer { padding-block-start: 8px; }
+  .vocabulary-import-fields {
+    gap: 8px;
+    padding-block: 4px 8px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .vocabulary-import-fields > section { padding: 12px; }
+  .vocabulary-import-window :is(.primary-button, .secondary-button) { min-height: 36px; }
 }
 .settings-dialog {
   max-width: min(1008px, calc(100vw - 48px));
@@ -1296,7 +1309,6 @@ html { font-size: 18px; }
 .regenerate-subtitles-button svg { width: 13px; height: 13px; }
 
 /* The library table fills available height. Additional rows go on the next page. */
-.audio-page { height: calc(100dvh - var(--toolbar-height)); min-height: 0; }
 .audio-page > .library-heading, .audio-page > .audio-toolbar { flex-shrink: 0; }
 .audio-page .audio-table { flex: 1; min-height: 120px; overflow: hidden; }
 .audio-table thead { background: hsl(var(--card)); }
@@ -1343,7 +1355,6 @@ html { font-size: 18px; }
 .audio-playback-controls .audio-play-button svg { width: 17px; height: 17px; }
 .audio-player-panel > .audio-playback-controls:last-child { padding-top: 16px; padding-bottom: 16px; }
 
-.app-shell[data-collapsed='true'] { --sidebar-width: 92px !important; }
 .sidebar-link span, .sidebar-brand strong { white-space: nowrap; }
 .sidebar-link svg { flex-shrink: 0; }
 .sentence-toolbar-main .secondary-button { font-weight: 600; }
@@ -1381,17 +1392,6 @@ html { font-size: 18px; }
 .sentence-word { padding-bottom: 2px; transition: none; }
 
 .audio-notes { border-top: 0; }
-.workspace-window-bar {
-  display: flex;
-  flex: 0 0 var(--toolbar-height);
-  align-items: center;
-  padding-inline: 8px;
-}
-.workspace-window-bar .workspace-sidebar-toggle {
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-}
 .audio-study-header button, .audio-study-header a { -webkit-app-region: no-drag; }
 .size-control-icon { position: relative; display: inline-flex; padding-right: 8px; padding-bottom: 3px; }
 .size-control-icon .size-control-sign { position: absolute; width: 12px; height: 12px; right: -2px; bottom: -1px; stroke-width: 3; background: hsl(var(--card)); border-radius: 3px; }
@@ -1401,6 +1401,23 @@ html { font-size: 18px; }
 .audio-study .text-control:hover { color: hsl(var(--accent-foreground)); background: hsl(var(--accent)); }
 .size-stepper { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 3px; padding: 3px; border: 1px solid hsl(var(--border)); border-radius: 9px; background: hsl(var(--card)); }
 .size-stepper-label { display: inline-flex; align-items: center; gap: 4px; padding-inline: 5px; font-size: 14px; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+.spelling-size-button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+}
+.spelling-size-button:enabled { cursor: pointer; }
+.spelling-size-input {
+  width: 2.1em;
+  height: 28px;
+  appearance: textfield;
+  background: transparent;
+  border-radius: 4px;
+}
+.spelling-size-input::-webkit-inner-spin-button,
+.spelling-size-input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .audio-player-panel { display: flex; flex-direction: column; }
 .audio-player-panel > div:first-child { flex: 1; min-height: 0; }
 .audio-player-panel > .audio-playback-controls:last-child { padding-top: 12px; padding-bottom: 8px; flex-shrink: 0; }
@@ -1519,10 +1536,9 @@ html:is(.light, .dark) {
 html.light {
   --primary-ink: 214 32% 30%;
   --accent-foreground: 214 25% 25%;
-  --learning-ink: 154.5 85.106383% 18.431373%;
-  --practice-word: hsl(var(--learning-ink));
-  --practice-definition: hsl(var(--learning-ink));
-  --practice-examples: hsl(var(--learning-ink));
+  --practice-word: #000;
+  --practice-definition: var(--practice-word);
+  --practice-examples: hsl(var(--muted-foreground));
   --background: 240 12% 96%;
   --foreground: 240 5% 18%;
   --card: 0 0% 100%;
@@ -1861,8 +1877,12 @@ body:not(:has([role='dialog'], [role='alertdialog'], [role='listbox'], .dialog-o
   line-height: 1.2;
   letter-spacing: -.035em;
 }
-.overview-feature-copy p {
-  margin-top: 5px;
+.overview-feature-copy ul {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding-inline-start: 1.15em;
+  list-style-type: disc;
   color: hsl(var(--muted-foreground));
   font-size: calc(14px * var(--font-scale, 1));
   line-height: 1.45;
@@ -1936,7 +1956,7 @@ body:not(:has([role='dialog'], [role='alertdialog'], [role='listbox'], .dialog-o
 .audio-generation-page {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - var(--toolbar-height));
+  height: 100dvh;
 }
 .audio-generation-page > .library-heading { flex: none; user-select: none; }
 .audio-generation-page .page-heading { margin-bottom: 0; }

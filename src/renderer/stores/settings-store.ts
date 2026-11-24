@@ -21,7 +21,7 @@ export interface VocabularySettings {
   definitionFontSize: number
   examplesFontSize: number
 
-  // Legacy colours are retained for compatibility, but no longer affect rendering.
+  // Legacy text colours are retained for compatibility.
   wordColor?: string
   definitionColor?: string
   examplesColor?: string

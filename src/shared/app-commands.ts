@@ -1,4 +1,4 @@
-export type AppCommand = 'home' | 'vocabulary' | 'audios' | 'settings' | 'toggle-sidebar'
+export type AppCommand = 'home' | 'vocabulary' | 'audios' | 'settings'
 
 export interface WindowAppearance {
   platform: string

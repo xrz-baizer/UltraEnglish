@@ -2,29 +2,28 @@
 
 # UltraEnglish 英语学习桌面客户端
 
-UltraEnglish 是一款在本机生成英语学习素材、练听力跟读和单词拼写的桌面应用。
+UltraEnglish 是一款英语学习桌面应用，支持本机生成音频和字幕、选段跟读与单词拼写。
 
 **[访问官网](https://xrz-baizer.github.io/UltraEnglish/)** · [在线体验](https://xrz-baizer.github.io/UltraEnglish/#experience) · [下载 Mac 客户端](https://xrz-baizer.github.io/UltraEnglish/#download) · [问题反馈](https://github.com/xrz-baizer/UltraEnglish/issues)
 
 ## 核心功能
 
-- **文本生成音频**：将英文文本合成为 MP3 或 WAV，支持多种音色和语速，音频可连同原文字幕一起保存到资料库。
-- **音频转文字**：在本机识别英文录音，生成带时间戳的字幕，也支持导入 LRC、TXT、SRT 和 VTT。
-- **选段跟读**：按句听原声，或选中单词、短语和波形片段，变速循环跟读。
-- **单词拼写**：使用内置或自定义词书按章练习，支持填空、默写、熟词标记和进度保存。
+- **文字转音频**：输入英文文本生成 MP3 或 WAV，可选音色和语速。
+- **音频资料库**：导入音频后可在本机生成带时间戳的字幕，也可选中句子片段循环跟读。
+- **词汇资料库**：用内置或自定义单词本练习拼写。导入窗口提供可预览和下载的 JSON 模板。
 
 ## 应用截图
 
 <table>
   <tr>
-    <td width="33%" align="center"><a href="docs/screenshots/desktop-home.png"><img src="docs/screenshots/desktop-home.png" alt="首页界面"></a><br>首页</td>
-    <td width="33%" align="center"><a href="docs/screenshots/audio-generation.png"><img src="docs/screenshots/audio-generation.png" alt="生成音频界面"></a><br>生成音频</td>
-    <td width="33%" align="center"><a href="docs/screenshots/audio-subtitles.png"><img src="docs/screenshots/audio-subtitles.png" alt="时间轴字幕界面"></a><br>时间轴字幕</td>
+    <td width="33%" align="center"><a href="docs/screenshots/home-overview.png"><img src="docs/screenshots/home-overview.png" alt="首页界面"></a><br>首页</td>
+    <td width="33%" align="center"><a href="docs/screenshots/text-to-audio.png"><img src="docs/screenshots/text-to-audio.png" alt="文字转音频界面"></a><br>文字转音频</td>
+    <td width="33%" align="center"><a href="docs/screenshots/timestamped-subtitles.png"><img src="docs/screenshots/timestamped-subtitles.png" alt="时间轴字幕界面"></a><br>时间轴字幕</td>
   </tr>
   <tr>
-      <td width="33%" align="center"><a href="docs/screenshots/audio-study.png"><img src="docs/screenshots/audio-study.png" alt="选段跟读界面"></a><br>选段跟读</td>
-    <td width="33%" align="center"><a href="docs/screenshots/vocabulary-library.png"><img src="docs/screenshots/vocabulary-library.png" alt="词书界面"></a><br>词书</td>
-    <td width="33%" align="center"><a href="docs/screenshots/spelling-practice.png"><img src="docs/screenshots/spelling-practice.png" alt="拼写练习界面"></a><br>拼写练习</td>
+      <td width="33%" align="center"><a href="docs/screenshots/phrase-shadowing.png"><img src="docs/screenshots/phrase-shadowing.png" alt="选段跟读界面"></a><br>选段跟读</td>
+    <td width="33%" align="center"><a href="docs/screenshots/vocabulary-books.png"><img src="docs/screenshots/vocabulary-books.png" alt="词汇资料库界面"></a><br>词汇资料库</td>
+    <td width="33%" align="center"><a href="docs/screenshots/word-spelling.png"><img src="docs/screenshots/word-spelling.png" alt="拼写练习界面"></a><br>拼写练习</td>
   </tr>
 </table>
 

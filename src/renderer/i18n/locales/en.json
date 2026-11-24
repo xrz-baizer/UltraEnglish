@@ -137,9 +137,18 @@
     "signUp": "Sign Up"
   },
   "home": {
-    "generationDescription": "Turn English text into MP3 or WAV and add it to your library with subtitles.",
-    "shadowingDescription": "Select a word, phrase, or part of the waveform to loop and shadow.",
-    "spellingDescription": "Practice spelling by chapter and pick up where you left off.",
+    "generationDescription": [
+      "Turn English text into an audio file (MP3)",
+      "Choose a voice and adjust the speaking speed"
+    ],
+    "shadowingDescription": [
+      "Import audio to practice shadowing",
+      "Select part of a sentence to play"
+    ],
+    "spellingDescription": [
+      "Practice spelling",
+      "Import custom word books"
+    ],
     "welcome": "Welcome to UltraEnglish",
     "subtitle": "Your English learning companion",
     "vocabularyPractice": "Vocabulary Practice",
@@ -200,6 +209,11 @@
     "importDesc": "Choose a file and customize details before importing",
     "importFile": "Vocabulary File",
     "importFilePlaceholder": "Select a JSON file",
+    "importViewTemplate": "View JSON template",
+    "importTemplateTitle": "Vocabulary book JSON template",
+    "importDownloadTemplate": "Download template",
+    "importTemplateDownloaded": "JSON template saved to Downloads",
+    "importTemplateError": "Could not save the JSON template",
     "importChooseFile": "Choose File",
     "importBookName": "Book Name",
     "importBookNamePlaceholder": "Enter book name",
@@ -598,6 +612,8 @@
       "phoneticFontSize": "Phonetic Size",
       "definitionFontSize": "Definition Size",
       "examplesFontSize": "Example Size",
+      "decreaseSize": "Decrease {{label}}",
+      "increaseSize": "Increase {{label}}",
       "chapterLength": "Chapter Length",
       "chapterLengthDesc": "Number of words in each practice chapter",
       "customChapterLength": "Custom",
@@ -617,13 +633,15 @@
       "autoShowTranslationOnInputDesc": "Automatically show definition when typing starts",
       "completionSound": "Word Completion Sound",
       "completionSoundDesc": "Play a sound when a word is typed correctly",
-      "visualStyle": "Visual Style",
+      "typography": "Typography",
+      "colors": "Colors",
       "highlightKeywordsInExamples": "Highlight Keywords in Examples",
       "wordFontBold": "Word Weight",
       "definitionFontBold": "Definition Font Weight",
       "examplesFontBold": "Example Font Weight",
       "correctColor": "Correct Color",
       "wrongColor": "Wrong Color",
+      "resetColor": "Reset {{label}}",
       "behavior": "Practice behavior",
       "audio": "Pronunciation",
       "display": "Display settings",
@@ -706,8 +724,9 @@
   },
   "shell": {
     "overview": "Home",
-    "vocabulary": "Spelling Practice",
-    "audios": "Shadowing Practice",
+    "generation": "Text to Audio",
+    "vocabulary": "Vocabulary Library",
+    "audios": "Audio Library",
     "navigation": "Main navigation",
     "library": "Library",
     "personalWorkspace": "Your learning space",
@@ -716,8 +735,6 @@
     "yourWorkspace": "Personal workspace",
     "signInOptional": "Sign in · Learn locally without an account",
     "account": "Manage your account",
-    "expandSidebar": "Expand",
-    "collapseSidebar": "Collapse",
     "learningSpace": "A little progress, every day",
     "studyWorkspace": "Study workspace"
   },

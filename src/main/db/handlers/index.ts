@@ -5,7 +5,7 @@ import type { TranscriptionSegment } from '../../../shared/audio-transcription'
 import { MAX_AUDIO_NAME_LENGTH } from '../../../shared/audio-library'
 import type { AudioResourceDetails, SelectedAudioFile } from '../../../shared/audio-library'
 import { chooseStorageDirectory, getStoragePaths, getAudioStorageDirectory, getAudioPreferences, withAudioLibraryCopy } from '../../services/audio-storage'
-import { ipcMain, dialog, BrowserWindow, shell, clipboard } from 'electron'
+import { ipcMain, dialog, BrowserWindow, shell, clipboard, screen } from 'electron'
 import type { OpenDialogOptions, WebContents } from 'electron'
 import { models } from '../index'
 import { importVocabularyFromFile } from '../seed'
@@ -237,12 +237,12 @@ export function registerIpcHandlers(): void {
     }
 
     const parent = BrowserWindow.fromWebContents(event.sender) || undefined
+    const zoom = Math.max(1, parent?.webContents.getZoomFactor() ?? 1)
+    const display = parent ? screen.getDisplayMatching(parent.getBounds()) : screen.getPrimaryDisplay()
 
     importWindow = new BrowserWindow({
-      width: 720,
-      height: 560,
-      minWidth: 680,
-      minHeight: 520,
+      width: Math.min(Math.ceil(495 * zoom), display.workArea.width),
+      height: Math.min(Math.ceil(520 * zoom), display.workArea.height - 40),
       useContentSize: true,
       center: true,
       backgroundColor: '#ffffff',
@@ -989,7 +989,7 @@ export function registerIpcHandlers(): void {
     'save-text-file-to-downloads',
     async (
       _,
-      { content, suggestedName }: { content: string; suggestedName: string }
+      { content, suggestedName, showInFolder }: { content: string; suggestedName: string; showInFolder?: boolean }
     ) => {
       try {
         const downloadsDir = app.getPath('downloads')
@@ -1003,6 +1003,7 @@ export function registerIpcHandlers(): void {
           counter += 1
         }
         writeFileSync(targetPath, content, 'utf-8')
+        if (showInFolder === true) shell.showItemInFolder(targetPath)
         return { success: true, filePath: targetPath }
       } catch (error) {
         log.error('Failed to save file to downloads:', error)

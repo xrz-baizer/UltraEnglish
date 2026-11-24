@@ -137,9 +137,18 @@
     "signUp": "注册"
   },
   "home": {
-    "generationDescription": "输入英文文本，生成 MP3 或 WAV，可连同原文字幕一起入库。",
-    "shadowingDescription": "选中单词、短语或音轨片段，循环播放并跟读。",
-    "spellingDescription": "按词书章节练习单词拼写，接着上次的进度练。",
+    "generationDescription": [
+      "输入英文文本生成音频文件（MP3）",
+      "支持指定音色和自定义语速"
+    ],
+    "shadowingDescription": [
+      "导入音频进行影子跟读",
+      "可选中部分句子片段播放"
+    ],
+    "spellingDescription": [
+      "进行拼写练习",
+      "支持导入自定义单词本"
+    ],
     "welcome": "欢迎使用 UltraEnglish",
     "subtitle": "您的英语学习好伙伴",
     "vocabularyPractice": "词汇练习",
@@ -200,6 +209,11 @@
     "importDesc": "选择文件并设置词汇书信息",
     "importFile": "词汇文件",
     "importFilePlaceholder": "请选择 JSON 文件",
+    "importViewTemplate": "查看 JSON 模板",
+    "importTemplateTitle": "JSON 词汇书模板",
+    "importDownloadTemplate": "下载模板",
+    "importTemplateDownloaded": "JSON 模板已保存到下载文件夹",
+    "importTemplateError": "无法保存 JSON 模板",
     "importChooseFile": "选择文件",
     "importBookName": "词汇书名称",
     "importBookNamePlaceholder": "请输入词汇书名称",
@@ -596,6 +610,8 @@
       "phoneticFontSize": "音标大小",
       "definitionFontSize": "释义大小",
       "examplesFontSize": "例句大小",
+      "decreaseSize": "减小{{label}}",
+      "increaseSize": "增大{{label}}",
       "chapterLength": "章节长度",
       "chapterLengthDesc": "每个练习章节包含的单词数量",
       "customChapterLength": "自定义",
@@ -615,13 +631,15 @@
       "autoShowTranslationOnInputDesc": "开始输入时自动显示释义",
       "completionSound": "单词完成音效",
       "completionSoundDesc": "单词拼写正确时播放音效",
-      "visualStyle": "视觉风格",
+      "typography": "文字样式",
+      "colors": "颜色",
       "highlightKeywordsInExamples": "例句关键词高亮",
       "wordFontBold": "单词字重",
       "definitionFontBold": "释义字重",
       "examplesFontBold": "例句字重",
       "correctColor": "正确颜色",
       "wrongColor": "错误颜色",
+      "resetColor": "重置{{label}}",
       "behavior": "练习行为",
       "audio": "发音设置",
       "display": "显示设置",
@@ -704,8 +722,9 @@
   },
   "shell": {
     "overview": "首页",
-    "vocabulary": "拼写练习",
-    "audios": "跟读训练",
+    "generation": "文字转音频",
+    "vocabulary": "词汇资料库",
+    "audios": "音频资料库",
     "navigation": "主导航",
     "library": "资料库",
     "personalWorkspace": "你的英语学习空间",
@@ -714,8 +733,6 @@
     "yourWorkspace": "个人学习空间",
     "signInOptional": "登录账户 · 本地学习无需登录",
     "account": "管理个人账户",
-    "expandSidebar": "展开",
-    "collapseSidebar": "收起",
     "learningSpace": "专注每一点进步",
     "studyWorkspace": "学习工作区"
   },

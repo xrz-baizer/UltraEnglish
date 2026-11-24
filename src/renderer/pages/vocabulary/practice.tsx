@@ -13,7 +13,7 @@ import {
 import {cn, compareWord} from '@renderer/lib/utils'
 import {sound} from '@renderer/lib/sound'
 import {playYoudaoVoice} from '@renderer/lib/voice'
-import {useSettingsStore, defaultSettings} from '@renderer/stores/settings-store'
+import {useSettingsStore} from '@renderer/stores/settings-store'
 import {normalizeWordRepeat} from '@renderer/lib/vocabulary-repeat'
 import {CompletionScreen} from './components/completion-screen'
 
@@ -1055,6 +1055,32 @@ export function VocabularyPracticePage() {
         }
     }
 
+    const renderPhonetic = (visible = true) => {
+        const phonetic = getPhonetic()
+        if (!phonetic) return null
+        const label = t('practice.pronounce')
+        return (
+            <div className="flex items-center justify-center gap-1.5 text-muted-foreground">
+                <span className="font-medium" style={{fontSize: `${vocabSettings.phoneticFontSize}px`}}>
+                    {phonetic}
+                </span>
+                <button
+                    type="button"
+                    className="practice-pronounce"
+                    aria-label={label}
+                    title={label}
+                    tabIndex={visible ? undefined : -1}
+                    onClick={playSound}
+                    onKeyDown={(event) => {
+                        if (event.key === ' ' || event.key === 'Enter') event.stopPropagation()
+                    }}
+                >
+                    <Volume2 size={16} aria-hidden="true"/>
+                </button>
+            </div>
+        )
+    }
+
     // Render word for dictation mode
     const renderDictationWord = () => {
         if (!currentWord) return null
@@ -1064,6 +1090,7 @@ export function VocabularyPracticePage() {
                     "transition-opacity duration-200",
                     shouldShowWord ? "opacity-100" : "opacity-0"
                 )}
+                aria-hidden={!shouldShowWord}
             >
                  <div
                     className="text-center font-medium"
@@ -1077,22 +1104,7 @@ export function VocabularyPracticePage() {
                     {currentWord.word}
                  </div>
 
-                 {getPhonetic() && (
-                    <div className="flex items-center justify-center gap-3 text-muted-foreground mt-2">
-                        <span
-                            className="font-medium"
-                            style={{fontSize: `${vocabSettings.phoneticFontSize}px`}}
-                        >
-                          {getPhonetic()}
-                        </span>
-                        <button
-                            onClick={playSound}
-                            className="glass-control rounded-full p-2 transition-colors hover:text-primary-ink"
-                        >
-                            <Volume2 className="h-5 w-5"/>
-                        </button>
-                    </div>
-                )}
+                {renderPhonetic(shouldShowWord)}
             </div>
         )
     }
@@ -1356,13 +1368,13 @@ export function VocabularyPracticePage() {
         <div
             className="practice-workspace absolute inset-0 flex flex-col bg-background"
             style={{
-                '--practice-correct': vocabSettings.correctColor === defaultSettings.vocabulary.correctColor ? undefined : vocabSettings.correctColor,
-                '--practice-wrong': vocabSettings.wrongColor === defaultSettings.vocabulary.wrongColor ? undefined : vocabSettings.wrongColor,
+                '--practice-correct': vocabSettings.correctColor,
+                '--practice-wrong': vocabSettings.wrongColor,
             } as CSSProperties}
         >
             {/* Header */}
             <header
-                className="shrink-0 grid gap-3 border-b border-border/40 bg-background/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:grid-cols-[auto_1fr_auto] sm:items-center"
+                className="drag-region shrink-0 grid gap-3 border-b border-border/40 bg-background/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:grid-cols-[auto_1fr_auto] sm:items-center"
             >
                 <div className="flex items-center gap-3">
                     <button
@@ -1644,7 +1656,7 @@ export function VocabularyPracticePage() {
                                                         fontWeight: vocabSettings.wordFontWeight,
                                                         width: `${Math.max(10, currentWord.word.length + 3)}ch`,
                                                         maxWidth: '100%',
-                                                        color: inputState === 'wrong' ? 'var(--practice-wrong)' : inputState === 'correct' ? 'var(--practice-correct)' : undefined
+                                                        color: inputState === 'wrong' ? 'var(--practice-wrong)' : inputState === 'correct' ? 'var(--practice-correct)' : 'var(--practice-word)'
                                                     }}
                                                 />
                                             </div>
@@ -1700,24 +1712,7 @@ export function VocabularyPracticePage() {
                                             >
                                                 {renderWord()}
 
-                                                {/* Phonetic */}
-                                                {getPhonetic() && (
-                                                    <div
-                                                        className="flex items-center justify-center gap-3 text-muted-foreground">
-                                <span
-                                    className="font-medium"
-                                    style={{fontSize: `${vocabSettings.phoneticFontSize}px`}}
-                                >
-                                  {getPhonetic()}
-                                </span>
-                                                        <button
-                                                            onClick={playSound}
-                                                            className="glass-control rounded-full p-2 transition-colors hover:text-primary-ink"
-                                                        >
-                                                            <Volume2 className="h-5 w-5"/>
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                {renderPhonetic()}
                                             </div>
                                         </>
                                     )}
